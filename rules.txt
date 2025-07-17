@@ -1,0 +1,5 @@
+height 6
+width 7
+
+if 4 dots are connected in line person wins
+row, column and diagonal
