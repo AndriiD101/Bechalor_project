@@ -1,37 +1,42 @@
-def check_diagonal(board, row, col, piece):
-    # /
-    count = 0
-    r, c = row, col
-    while r > 0 and c > 0:
-        r -= 1
-        c -= 1
-    while r < ROW_COUNT and c < COLUMN_COUNT:
-        if board[r][c] == piece:
-            count += 1
-            if count == 4:
-                return True
-        else:
-            count = 0
-        r += 1
-        c += 1
+from game import connect4
+from agents import random_agent
+from time import sleep
 
-    # \
-    count = 0
-    r, c = row, col
-    while r < ROW_COUNT - 1 and c > 0:
-        r += 1
-        c -= 1
-    while r >= 0 and c < COLUMN_COUNT:
-        if board[r][c] == piece:
-            count += 1
-            if count == 4:
-                return True
-        else:
-            count = 0
-        r -= 1
-        c += 1
+if __name__ == "__main__":
+    # Create a game
+    game = connect4.Connect4Game()
+    random_agent1 = random_agent.RandomAgent(1)
+    random_agent2 = random_agent.RandomAgent(2)
+    
+    game.print_board()
+    
+    while True:
+        current_agent = random_agent1 if game.current_player == 1 else random_agent2
+        move =  current_agent.select_move(game)
+        
+        if move == -1:
+            game.check_draw()
+            print("Draw")
+            break
+        
+        success = game.make_move(move)
 
-    return False
+        if not success:
+            print(f"Гравець {game.current_player} ({current_agent}) зробив некоректний хід. Програв автоматично.")
+            break
 
-for i in range(10, 0, -1):
-    print(i)
+        game.print_board()
+
+        # Перевірка переможця
+        row = game.get_next_open_row(move)
+        row = row - 1 if row is not None and row > 0 else 0
+        if game.check_winner(row, move, game.current_player):
+            print(f"Гравець {game.current_player} ({current_agent}) переміг!")
+            break
+
+        # Перевірка нічиєї
+        if game.check_draw():
+            print("Гра завершилася нічиєю.")
+            break
+
+        game.switch_player()

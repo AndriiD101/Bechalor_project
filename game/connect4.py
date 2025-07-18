@@ -109,7 +109,7 @@ class Connect4Game:
         return new_game
     
     def print_board(self):
-        print(self.board)
+        print(np.flipud(self.board))
      
-if __name__ == "__main__":
-    pass
+# if __name__ == "__main__":
+#     pass
