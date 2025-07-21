@@ -1,12 +1,12 @@
 from game import connect4
-from agents import random_agent
+from agents import rule_based_agent, random_agent
 from time import sleep
 
 if __name__ == "__main__":
     # Create a game
     game = connect4.Connect4Game()
     random_agent1 = random_agent.RandomAgent(1)
-    random_agent2 = random_agent.RandomAgent(2)
+    random_agent2 = rule_based_agent.RuleBasedAgent(2)
     
     game.print_board()
     
@@ -40,3 +40,9 @@ if __name__ == "__main__":
             break
 
         game.switch_player()
+
+# if __name__ == "__main__":
+#     game = connect4.Connect4Game()
+#     agent = rule_based_agent.RuleBasedAgent(1)
+    
+#     agent._can_win_next(game)

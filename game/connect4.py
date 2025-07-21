@@ -11,6 +11,9 @@ class Connect4Game:
         self.board = np.zeros((self.row_count, self.column_count))
         self.current_player = 1
     
+    def get_board_state(self):
+        return self.board
+    
     def is_valid_location(self, board, col):
         if board[self.row_count-1][col] == 0:
             return True

@@ -1,8 +1,9 @@
 import random
+from agents.agents_interface import AgentInterface
 
-class RandomAgent:
+class RandomAgent(AgentInterface):
     def __init__(self, player_id):
-        self.player_id = player_id
+        super().__init__(player_id)
         
     def get_valid_moves(self, game):
         valid_moves = []
