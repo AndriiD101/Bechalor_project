@@ -128,4 +128,4 @@ class MCTSAgent(AgentInterface, MinMaxAgent):
             return best_child.move
         else:
             valid_moves = self._get_valid_moves_from_board(game.board)
-            return random.choice(valid_moves) if valid_moves else -
+            return random.choice(valid_moves) if valid_moves else -1
