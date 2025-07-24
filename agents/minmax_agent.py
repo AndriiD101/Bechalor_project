@@ -51,7 +51,7 @@ class MinMaxAgent(AgentInterface):
             len(self._get_valid_moves_from_board(board)) == 0
         )
 
-    def evaluate_board(self, board):
+    def _evaluate_board(self, board):
         score = 0
         ROWS, COLS = board.shape
         center_col = COLS // 2
@@ -111,7 +111,7 @@ class MinMaxAgent(AgentInterface):
                 else:
                     return 0, None
             else:
-                return self.evaluate_board(board), None
+                return self._evaluate_board(board), None
 
         if maximizing_player:
             value = float('-inf')
