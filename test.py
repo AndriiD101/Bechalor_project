@@ -1,11 +1,11 @@
 from game import connect4
-from agents import minmax_agent, rule_based_agent, random_agent
+from agents import mcts_agent, minmax_agent, rule_based_agent, random_agent
 from time import sleep
 
 if __name__ == "__main__":
     game = connect4.Connect4Game()
-    random_agent1 = minmax_agent.MinMaxAgent(1)
-    random_agent2 = random_agent.RandomAgent(2)
+    random_agent1 = mcts_agent.MCTSAgent(1)
+    random_agent2 = mcts_agent.MCTSAgent(2)
     
     game.print_board()
     

@@ -1,131 +1,150 @@
 from agents.agents_interface import AgentInterface
-from agents.minmax_agent import MinMaxAgent
 import numpy as np
 import random
 import copy
+import math
+from typing import List, Optional
 
 class MCTSNode:
-    def __init__(self, board, player_id, parent=None, move=None):
+    def __init__(self, board: np.ndarray, player_id: int, parent: Optional['MCTSNode']=None, move: Optional[int]=None):
         self.board = board
         self.player_id = player_id
         self.parent = parent
-        self.children = []
-        self.move = move
+        self.children: List['MCTSNode'] = []
+        self.move = move  
         self.visits = 0
-        self.wins = 0 
+        self.wins = 0.0
         self.untried_moves = self._get_valid_moves(board)
 
-    
-    def _get_valid_moves(self, board):
-        valid_moves = []
-        for col in range(board.shape[1]):
-            if board[0][col] == 0:
-                valid_moves.append(col)
-        return valid_moves
-    
-class MCTSAgent(AgentInterface, MinMaxAgent):
-    def __init__(self, player_id, simulation=1000):
-        super().__init__(player_id)
-        self.opponent_id = 1 if player_id == 2 else 2
+    def _get_valid_moves(self, board: np.ndarray) -> List[int]:
+        rows, cols = board.shape
+        top = rows - 1
+        return [c for c in range(cols) if board[top][c] == 0]
 
-        self.simulation = simulation
-    
-    def _has_won(self, board, player_id):
-        ROWS, COLS = board.shape
-        for row in range(ROWS):
-            for col in range(COLS):
-                if board[row][col] != player_id:
-                    continue
-                # Horizontal
-                if col <= COLS - 4 and all(board[row][col + i] == player_id for i in range(4)):
-                    return True
-                # Vertical
-                if row <= ROWS - 4 and all(board[row + i][col] == player_id for i in range(4)):
-                    return True
-                # Diagonal /
-                if row >= 3 and col <= COLS - 4 and all(board[row - i][col + i] == player_id for i in range(4)):
-                    return True
-                # Diagonal \
-                if row <= ROWS - 4 and col <= COLS - 4 and all(board[row + i][col + i] == player_id for i in range(4)):
-                    return True
-        return False
-    
-    def _simulate_random_game(self, board, current_player):
-        board_copy = copy.deepcopy(board)
-        player = current_player
-        
-        while True:
-            valid_moves = self._get_valid_moves_from_board(board_copy)
-            if not valid_moves:
-                return 0
-            
-            move = random.choice(valid_moves)
-            board_copy = self._simulate_move(board_copy, move, player)
-            
-            if self._has_won(board_copy, player):
-                return player
+    def is_fully_expanded(self) -> bool:
+        return len(self.untried_moves) == 0
 
-            player = 1 if player == 2 else 2
-    
-    def _expand(self, node):
-        move = node.untried_moves.pop()  # Remove one untried move
-        new_board = self._simulate_move(node.board, move, node.player_id)
-        next_player = 1 if node.player_id == 2 else 2
-        child_node = MCTSNode(
-            board=new_board,
-            player_id=next_player,
-            parent=node,
-            move=move
-        )
-        node.children.append(child_node)
-        return child_node
-
-    def _backpropagate(self, node, result):
-        while node is not None:
-            node.visits += 1
-            if result == self.player_id:
-                node.wins += 1
-            elif result == 0:
-                node.wins += 0.5
-            node = node.parent
-    
-    def _select_best_child(self, node):
-        best_child = None
-        best_value = float('-inf')
-        for child in node.children:
+    def best_child(self, c: float) -> 'MCTSNode':
+        best = None
+        best_score = -float('inf')
+        for child in self.children:
             if child.visits == 0:
-                continue
-            ucb1 = (child.wins / child.visits) + np.sqrt(2 * np.log(node.visits) / child.visits)
-            if ucb1 > best_value:
-                best_value = ucb1
-                best_child = child
-        return best_child
+                score = float('inf')
+            else:
+                exploit = child.wins / child.visits
+                explore = math.sqrt(math.log(self.visits) / child.visits)
+                score = exploit + c * explore
+            if score > best_score:
+                best_score = score
+                best = child
+        assert best is not None
+        return best
 
-    
-    def select_move(self, game):
-        root = MCTSNode(copy.deepcopy(game.board), self.player_id)
+    def add_child(self, move: int, next_board: np.ndarray, next_player: int) -> 'MCTSNode':
+        child = MCTSNode(next_board, next_player, parent=self, move=move)
+        self.children.append(child)
+        return child
+
+
+class MCTSAgent(AgentInterface):
+    def __init__(self, simulations: int = 1500, c: float = math.sqrt(2), seed: Optional[int] = None):
+        self.simulations = simulations
+        self.c = c
+        if seed is not None:
+            random.seed(seed)
+            np.random.seed(seed)
+
+    def select_move(self, game) -> int:
+        root = MCTSNode(copy.deepcopy(game.board), int(game.current_player))
 
         for _ in range(self.simulations):
             node = root
 
-            # Selection
-            while node.untried_moves == [] and node.children:
-                node = self._select_best_child(node)
+            while node.is_fully_expanded() and node.children:
+                node = node.best_child(self.c)
 
-            # Expansion
             if node.untried_moves:
-                node = self._expand(node)
+                move = random.choice(node.untried_moves)
+                node.untried_moves.remove(move)
+                next_board = self._simulate_move(node.board, move, node.player_id)
+                next_player = 2 if node.player_id == 1 else 1
+                node = node.add_child(move, next_board, next_player)
 
-            # Simulation
-            result = self._simulate_random_game(copy.deepcopy(node.board), node.player_id)
+            prev_player = 2 if node.player_id == 1 else 1
+            if self._has_won(node.board, prev_player):
+                result = prev_player
+            else:
 
-            # Backpropagation
+                result = self._simulate_random_game(copy.deepcopy(node.board), node.player_id)
+
             self._backpropagate(node, result)
 
-        # Choose the most visited move
         if root.children:
             best_child = max(root.children, key=lambda c: c.visits)
-            return best_child.move
-        else:
-            valid_moves = self._get_valid_moves_from_board(game.board)
-            return random.choice(valid_moves) if valid_moves else -1
+            return int(best_child.move)
+
+        valid_moves = self._get_valid_moves_from_board(game.board)
+        return int(random.choice(valid_moves)) if valid_moves else -1
+
+    def _get_valid_moves_from_board(self, board: np.ndarray) -> List[int]:
+        rows, cols = board.shape
+        top = rows - 1
+        return [c for c in range(cols) if board[top][c] == 0]
+
+    def _simulate_move(self, board: np.ndarray, col: int, player_id: int) -> np.ndarray:
+        new_board = copy.deepcopy(board)
+        rows = new_board.shape[0]
+        for r in range(rows): 
+            if new_board[r][col] == 0:
+                new_board[r][col] = player_id
+                return new_board
+
+        return new_board
+
+    def _simulate_random_game(self, board: np.ndarray, player_to_move: int) -> int:
+        current = player_to_move
+        while True:
+            moves = self._get_valid_moves_from_board(board)
+            if not moves: 
+                return 0
+            col = random.choice(moves)
+            board = self._simulate_move(board, col, current)
+            if self._has_won(board, current):
+                return current
+            current = 2 if current == 1 else 1
+
+    def _backpropagate(self, node: MCTSNode, winner: int) -> None:
+        cur = node
+        while cur is not None:
+            cur.visits += 1
+            if winner == 0:
+                cur.wins += 0.5
+            elif winner == cur.player_id:
+                cur.wins += 1.0
+            # else add 0 for a loss
+            cur = cur.parent
+
+    # ---- Win check (board uses row 0 as bottom) ----
+    def _has_won(self, board: np.ndarray, player_id: int) -> bool:
+        ROWS, COLS = board.shape
+        # horizontal
+        for r in range(ROWS):
+            for c in range(COLS - 3):
+                if (board[r][c:c+4] == player_id).all():
+                    return True
+        # vertical
+        for c in range(COLS):
+            for r in range(ROWS - 3):
+                if board[r][c] == player_id and board[r+1][c] == player_id and board[r+2][c] == player_id and board[r+3][c] == player_id:
+                    return True
+        # diag up-right (bottom-left to top-right)
+        for r in range(ROWS - 3):
+            for c in range(COLS - 3):
+                if board[r][c] == player_id and board[r+1][c+1] == player_id and board[r+2][c+2] == player_id and board[r+3][c+3] == player_id:
+                    return True
+        # diag down-right (top-left to bottom-right in UI; here: from upper rows toward bottom)
+        for r in range(3, ROWS):
+            for c in range(COLS - 3):
+                if board[r][c] == player_id and board[r-1][c+1] == player_id and board[r-2][c+2] == player_id and board[r-3][c+3] == player_id:
+                    return True
+        return False
