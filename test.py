@@ -1,16 +1,15 @@
 from game import connect4
-from agents import mcts_agent, minmax_agent, rule_based_agent, random_agent
-from time import sleep
+from agents import mcts_agent, minmax_agent, rule_based_agent, random_agent, alfabetapruning_agent
 
 if __name__ == "__main__":
     game = connect4.Connect4Game()
-    random_agent1 = mcts_agent.MCTSAgent(1)
-    random_agent2 = mcts_agent.MCTSAgent(2)
+    agent1 = mcts_agent.MCTSAgent(1)
+    agent2 = alfabetapruning_agent.AlphaBetaAgent(2)
     
     game.print_board()
     
     while True:
-        current_agent = random_agent1 if game.current_player == 1 else random_agent2
+        current_agent = agent1 if game.current_player == 1 else agent2
         move =  current_agent.select_move(game)
         
         if move == -1:
