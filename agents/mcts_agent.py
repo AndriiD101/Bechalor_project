@@ -1,150 +1,239 @@
-from agents.agents_interface import AgentInterface
-import numpy as np
-import random
-import copy
 import math
-from typing import List, Optional
+import time
+import random
+import numpy as np
+
+from agents.agents_interface import AgentInterface
+from game.connect4 import Connect4Game
+
+
+# ================================================================== #
+#  Node                                                                #
+# ================================================================== #
 
 class MCTSNode:
-    def __init__(self, board: np.ndarray, player_id: int, parent: Optional['MCTSNode']=None, move: Optional[int]=None):
-        self.board = board
-        self.player_id = player_id
-        self.parent = parent
-        self.children: List['MCTSNode'] = []
-        self.move = move  
-        self.visits = 0
-        self.wins = 0.0
-        self.untried_moves = self._get_valid_moves(board)
+    __slots__ = ('game_state', 'parent', 'move', 'children',
+                 'visits', 'wins', 'available_moves', 'piece')
 
-    def _get_valid_moves(self, board: np.ndarray) -> List[int]:
-        rows, cols = board.shape
-        top = rows - 1
-        return [c for c in range(cols) if board[top][c] == 0]
+    def __init__(self, game_state: Connect4Game, piece: int,
+                 parent: 'MCTSNode | None' = None, move: int | None = None):
+        self.game_state     = game_state.clone()
+        self.parent         = parent
+        self.move           = move          # Column that led to this node
+        self.children:  list['MCTSNode'] = []
+        self.visits         = 0
+        self.wins           = 0.0
+        self.piece          = piece         # Player who just moved into this node
+        self.available_moves: list[int] = game_state.get_valid_locations()
 
-    def is_fully_expanded(self) -> bool:
-        return len(self.untried_moves) == 0
+    # ── UCT selection (best child by UCB1) ────────────────────────── #
+    def selection(self) -> 'MCTSNode':
+        """Return the child with the highest UCT value."""
+        log_visits = math.log(self.visits)
+        return max(
+            self.children,
+            key=lambda c: (c.wins / c.visits)
+                          + math.sqrt(2 * log_visits / c.visits)
+        )
 
-    def best_child(self, c: float) -> 'MCTSNode':
-        best = None
-        best_score = -float('inf')
-        for child in self.children:
-            if child.visits == 0:
-                score = float('inf')
-            else:
-                exploit = child.wins / child.visits
-                explore = math.sqrt(math.log(self.visits) / child.visits)
-                score = exploit + c * explore
-            if score > best_score:
-                best_score = score
-                best = child
-        assert best is not None
-        return best
-
-    def add_child(self, move: int, next_board: np.ndarray, next_player: int) -> 'MCTSNode':
-        child = MCTSNode(next_board, next_player, parent=self, move=move)
+    def expand(self, move: int, new_state: Connect4Game) -> 'MCTSNode':
+        """Create and register a child node for the given move."""
+        child = MCTSNode(
+            game_state=new_state,
+            piece=new_state.current_player,  # player whose turn it is next
+            parent=self,
+            move=move
+        )
+        self.available_moves.remove(move)
         self.children.append(child)
         return child
 
+    def update(self, result: float) -> None:
+        self.wins   += result
+        self.visits += 1
+
+    def best_move_child(self) -> 'MCTSNode':
+        """Return the child with the best win ratio (used at root)."""
+        return max(self.children, key=lambda c: c.wins / c.visits)
+
+
+# ================================================================== #
+#  Agent                                                               #
+# ================================================================== #
 
 class MCTSAgent(AgentInterface):
-    def __init__(self, simulations: int = 1500, c: float = math.sqrt(2), seed: Optional[int] = None):
-        self.simulations = simulations
-        self.c = c
-        if seed is not None:
-            random.seed(seed)
-            np.random.seed(seed)
+    def __init__(self, player_id: int,
+                 max_iterations: int = 20000,
+                 timeout: float = 2.0):
+        super().__init__(player_id)
+        self.opponent_id    = 2 if player_id == 1 else 1
+        self.max_iterations = max_iterations
+        # self.timeout        = timeout
+        self._current_node: MCTSNode | None = None
 
-    def select_move(self, game) -> int:
-        root = MCTSNode(copy.deepcopy(game.board), int(game.current_player))
+    # ------------------------------------------------------------------ #
+    #  Public API                                                          #
+    # ------------------------------------------------------------------ #
 
-        for _ in range(self.simulations):
-            node = root
+    def select_move(self, game: Connect4Game) -> int:
+        # ── Tree reuse: advance root to the current board state ───── #
+        if self._current_node is None:
+            self._current_node = MCTSNode(game_state=game, piece=self.player_id)
 
-            while node.is_fully_expanded() and node.children:
-                node = node.best_child(self.c)
+        # Opponent may have played a move we haven't seen — find or
+        # create the matching child node.
+        self._current_node = self._get_or_create_node(
+            self._current_node, game, game.current_player
+        )
 
-            if node.untried_moves:
-                move = random.choice(node.untried_moves)
-                node.untried_moves.remove(move)
-                next_board = self._simulate_move(node.board, move, node.player_id)
-                next_player = 2 if node.player_id == 1 else 1
-                node = node.add_child(move, next_board, next_player)
+        # ── Run MCTS ─────────────────────────────────────────────── #
+        root = self._current_node
+        # start = time.perf_counter()
 
-            prev_player = 2 if node.player_id == 1 else 1
-            if self._has_won(node.board, prev_player):
-                result = prev_player
-            else:
+        for _ in range(self.max_iterations):
+            node  = root
+            state = node.game_state.clone()
 
-                result = self._simulate_random_game(copy.deepcopy(node.board), node.player_id)
+            # 1. Selection — descend via UCT until expandable/terminal
+            while node.available_moves == [] and node.children != []:
+                node = node.selection()
+                state.make_move(node.move)
+                state.switch_player()
 
+            # 2. Expansion — add one new child for an untried move
+            if node.available_moves:
+                col = random.choice(node.available_moves)
+                state.make_move(col)
+                state.switch_player()
+                node = node.expand(col, state)
+
+            # 3. Rollout — play out to terminal with guided moves
+            result = self._rollout(state)
+
+            # 4. Backpropagation
             self._backpropagate(node, result)
 
-        if root.children:
-            best_child = max(root.children, key=lambda c: c.visits)
-            return int(best_child.move)
+            # if time.perf_counter() - start > self.timeout:
+            #     break
 
-        valid_moves = self._get_valid_moves_from_board(game.board)
-        return int(random.choice(valid_moves)) if valid_moves else -1
+        # ── Pick best child by win ratio ──────────────────────────── #
+        best = root.best_move_child()
 
-    def _get_valid_moves_from_board(self, board: np.ndarray) -> List[int]:
-        rows, cols = board.shape
-        top = rows - 1
-        return [c for c in range(cols) if board[top][c] == 0]
+        # Advance persistent root to the chosen child
+        best.parent      = None
+        self._current_node = best
+        return best.move
 
-    def _simulate_move(self, board: np.ndarray, col: int, player_id: int) -> np.ndarray:
-        new_board = copy.deepcopy(board)
-        rows = new_board.shape[0]
-        for r in range(rows): 
-            if new_board[r][col] == 0:
-                new_board[r][col] = player_id
-                return new_board
+    # ------------------------------------------------------------------ #
+    #  Tree reuse helper                                                   #
+    # ------------------------------------------------------------------ #
 
-        return new_board
+    def _get_or_create_node(self, node: MCTSNode,
+                             game: Connect4Game,
+                             piece: int) -> MCTSNode:
+        """
+        Search immediate children for a node whose board matches `game`.
+        Falls back to a fresh node if no match is found (e.g. the opponent
+        played an unexplored move).
+        """
+        for child in node.children:
+            if self._boards_equal(child.game_state.board, game.board):
+                child.parent = None
+                return child
+        # No matching child — start fresh from the current position
+        return MCTSNode(game_state=game, piece=piece)
 
-    def _simulate_random_game(self, board: np.ndarray, player_to_move: int) -> int:
-        current = player_to_move
+    @staticmethod
+    def _boards_equal(a: np.ndarray, b: np.ndarray) -> bool:
+        return bool((a == b).all())
+
+    # ------------------------------------------------------------------ #
+    #  Rollout                                                             #
+    # ------------------------------------------------------------------ #
+
+    def _rollout(self, state: Connect4Game) -> float:
+        """
+        Guided rollout: prefer immediately winning or blocking moves
+        before falling back to a random choice.
+        Returns 1.0 (agent wins), -1.0 (agent loses), or 0.0 (draw).
+        """
+        board          = state.board.copy()
+        current_player = state.current_player
+        opponent       = self.opponent_id if current_player == self.player_id else self.player_id
+        rows, cols     = state.row_count, state.column_count
+
         while True:
-            moves = self._get_valid_moves_from_board(board)
-            if not moves: 
-                return 0
-            col = random.choice(moves)
-            board = self._simulate_move(board, col, current)
-            if self._has_won(board, current):
-                return current
-            current = 2 if current == 1 else 1
+            valid = [c for c in range(cols) if board[rows - 1][c] == 0]
+            if not valid:
+                return 0.0  # Draw
 
-    def _backpropagate(self, node: MCTSNode, winner: int) -> None:
-        cur = node
-        while cur is not None:
-            cur.visits += 1
-            if winner == 0:
-                cur.wins += 0.5
-            elif winner == cur.player_id:
-                cur.wins += 1.0
-            # else add 0 for a loss
-            cur = cur.parent
+            # Prefer: win immediately > block opponent's win > random
+            move = (
+                self._find_winning_move(board, rows, cols, valid, current_player)
+                or self._find_winning_move(board, rows, cols, valid, opponent)
+                or random.choice(valid)
+            )
 
-    # ---- Win check (board uses row 0 as bottom) ----
-    def _has_won(self, board: np.ndarray, player_id: int) -> bool:
-        ROWS, COLS = board.shape
-        # horizontal
-        for r in range(ROWS):
-            for c in range(COLS - 3):
-                if (board[r][c:c+4] == player_id).all():
-                    return True
-        # vertical
-        for c in range(COLS):
-            for r in range(ROWS - 3):
-                if board[r][c] == player_id and board[r+1][c] == player_id and board[r+2][c] == player_id and board[r+3][c] == player_id:
-                    return True
-        # diag up-right (bottom-left to top-right)
-        for r in range(ROWS - 3):
-            for c in range(COLS - 3):
-                if board[r][c] == player_id and board[r+1][c+1] == player_id and board[r+2][c+2] == player_id and board[r+3][c+3] == player_id:
-                    return True
-        # diag down-right (top-left to bottom-right in UI; here: from upper rows toward bottom)
-        for r in range(3, ROWS):
-            for c in range(COLS - 3):
-                if board[r][c] == player_id and board[r-1][c+1] == player_id and board[r-2][c+2] == player_id and board[r-3][c+3] == player_id:
-                    return True
+            row = self._drop_piece(board, rows, move, current_player)
+            if row == -1:
+                return 0.0
+
+            if self._check_winner_fast(board, rows, cols, row, move, current_player):
+                return 1.0 if current_player == self.player_id else -1.0
+
+            current_player, opponent = opponent, current_player
+
+    # ------------------------------------------------------------------ #
+    #  Backpropagation                                                     #
+    # ------------------------------------------------------------------ #
+
+    def _backpropagate(self, node: MCTSNode, result: float) -> None:
+        while node is not None:
+            node.update(result)
+            node = node.parent
+
+    # ------------------------------------------------------------------ #
+    #  Fast board helpers (operate on raw numpy arrays — no clone needed) #
+    # ------------------------------------------------------------------ #
+
+    @staticmethod
+    def _drop_piece(board: np.ndarray, rows: int, col: int, player: int) -> int:
+        """Drop a piece and return the landed row, or -1 if column is full."""
+        for row in range(rows):
+            if board[row][col] == 0:
+                board[row][col] = player
+                return row
+        return -1
+
+    @staticmethod
+    def _check_winner_fast(board: np.ndarray, rows: int, cols: int,
+                            row: int, col: int, player: int) -> bool:
+        """
+        O(1) win check relative to board size — only examines the four
+        directions through the last-placed piece.
+        """
+        for dr, dc in ((0, 1), (1, 0), (1, 1), (1, -1)):
+            count = 1
+            for sign in (1, -1):
+                r, c = row + sign * dr, col + sign * dc
+                while 0 <= r < rows and 0 <= c < cols and board[r][c] == player:
+                    count += 1
+                    r += sign * dr
+                    c += sign * dc
+            if count >= 4:
+                return True
         return False
+
+    def _find_winning_move(self, board: np.ndarray, rows: int, cols: int,
+                           valid: list[int], player: int) -> int | None:
+        """Return the first column that wins immediately for `player`, or None."""
+        for col in valid:
+            for row in range(rows):
+                if board[row][col] == 0:
+                    board[row][col] = player
+                    won = self._check_winner_fast(board, rows, cols, row, col, player)
+                    board[row][col] = 0
+                    if won:
+                        return col
+                    break
+        return None

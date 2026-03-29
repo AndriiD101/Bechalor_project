@@ -4,15 +4,50 @@ import numpy as np
 import copy
 
 class Connect4Game:
+    # Constants expected by Evaluation
+    EMPTY         = 0
+    WINDOW_LENGTH = 4
+
     def __init__(self):
         self.row_count = 6
         self.column_count = 7
         self.board = np.zeros((self.row_count, self.column_count))
         self.current_player = 1
-    
+
+        # Aliases expected by Evaluation
+        self.COLUMN_COUNT = self.column_count
+        self.ROW_COUNT    = self.row_count
+
     def get_board_state(self):
         return self.board
-    
+
+    # ── Evaluation API ──────────────────────────────────────────────── #
+
+    def get_board(self) -> np.ndarray:
+        """Return the raw board array (Evaluation API)."""
+        return self.board
+
+    def winning_move(self, piece: int) -> bool:
+        """
+        Scan the entire board for four-in-a-row for `piece` (Evaluation API).
+        Reuses check_winner on every cell that contains the piece.
+        """
+        for row in range(self.row_count):
+            for col in range(self.column_count):
+                if self.board[row][col] == piece:
+                    if self.check_winner(row, col, piece):
+                        return True
+        return False
+
+    def get_valid_locations(self) -> list[int]:
+        """Return columns that still have at least one empty cell (Evaluation API)."""
+        return [
+            col for col in range(self.column_count)
+            if self.is_valid_location(self.board, col)
+        ]
+
+    # ── Original Connect4Game methods ──────────────────────────────── #
+
     def is_valid_location(self, board, col):
         if board[self.row_count-1][col] == 0:
             return True
@@ -54,7 +89,6 @@ class Connect4Game:
         return player, False
     
     def check_diagonal(self, row, col, player):
-        #diagonal check
         # Bottom-left to top-right (/)
         count = 0
         start_row, start_col = row, col
@@ -112,6 +146,6 @@ class Connect4Game:
     
     def print_board(self):
         print(np.flipud(self.board))
-     
+
 # if __name__ == "__main__":
 #     pass

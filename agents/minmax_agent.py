@@ -1,149 +1,209 @@
-from agents.agents_interface import AgentInterface
+import math
 import numpy as np
-import random
-import copy
+
+from agents.agents_interface import AgentInterface
+from agents.evaluation import Evaluation
+
+
+# ================================================================== #
+#  Window index pre-computation                                        #
+# ================================================================== #
+
+def _build_windows(rows: int, cols: int) -> list[list[tuple[int, int]]]:
+    windows = []
+
+    # Horizontal
+    for r in range(rows):
+        for c in range(cols - 3):
+            windows.append([(r, c + i) for i in range(4)])
+
+    # Vertical
+    for c in range(cols):
+        for r in range(rows - 3):
+            windows.append([(r + i, c) for i in range(4)])
+
+    # Diagonal /
+    for r in range(rows - 3):
+        for c in range(cols - 3):
+            windows.append([(r + i, c + i) for i in range(4)])
+
+    # Diagonal \
+    for r in range(3, rows):
+        for c in range(cols - 3):
+            windows.append([(r - i, c + i) for i in range(4)])
+
+    return windows
+
+
+# ================================================================== #
+#  MinMax Agent                                                        #
+# ================================================================== #
 
 class MinMaxAgent(AgentInterface):
-    def __init__(self, player_id, depth=4):
+    def __init__(self, player_id: int, max_depth: int = 5):
         super().__init__(player_id)
-        self.depth = depth
-        self.opponent_id = 1 if player_id == 2 else 2
+        self.max_depth   = max_depth
+        self.opponent_id = 2 if player_id == 1 else 1
 
-    def _get_valid_moves_from_board(self, board):
-        valid_moves = []
-        for col in range(board.shape[1]):
-            if board[0][col] == 0:
-                valid_moves.append(col)
-        return valid_moves
+        # Evaluation lib — owns all scoring / terminal logic
+        self._eval = Evaluation(player_id)
 
-    def _simulate_move(self, board, col, player_id):
-        new_board = copy.deepcopy(board)
-        for row in reversed(range(new_board.shape[0])):
-            if new_board[row][col] == 0:
-                new_board[row][col] = player_id
-                break
-        return new_board
+        # Precomputed lazily on first move (board size not known at init)
+        self._windows: list | None = None
 
-    def _has_won(self, board, player_id):
-        ROWS, COLS = board.shape
-        for row in range(ROWS):
-            for col in range(COLS):
-                if board[row][col] != player_id:
-                    continue
-                # Horizontal
-                if col <= COLS - 4 and all(board[row][col + i] == player_id for i in range(4)):
-                    return True
-                # Vertical
-                if row <= ROWS - 4 and all(board[row + i][col] == player_id for i in range(4)):
-                    return True
-                # Diagonal /
-                if row >= 3 and col <= COLS - 4 and all(board[row - i][col + i] == player_id for i in range(4)):
-                    return True
-                # Diagonal \
-                if row <= ROWS - 4 and col <= COLS - 4 and all(board[row + i][col + i] == player_id for i in range(4)):
-                    return True
-        return False
+        # Transposition table: {(board_bytes, current_player): (score, depth)}
+        self._tt: dict = {}
 
-    def _is_terminal_node(self, board):
-        return (
-            self._has_won(board, self.player_id) or
-            self._has_won(board, self.opponent_id) or
-            len(self._get_valid_moves_from_board(board)) == 0
-        )
+    # ------------------------------------------------------------------ #
+    #  Internal helpers                                                    #
+    # ------------------------------------------------------------------ #
 
-    def _evaluate_board(self, board):
-        score = 0
-        ROWS, COLS = board.shape
-        center_col = COLS // 2
+    def _ensure_windows(self, rows: int, cols: int) -> None:
+        """Build window index list once; reuse for the rest of the game."""
+        if self._windows is None:
+            self._windows = _build_windows(rows, cols)
 
-        center_array = [int(board[row][center_col]) for row in range(ROWS)]
-        center_count = center_array.count(self.player_id)
-        score += center_count * 3
+    def _order_moves(self, valid: list[int], cols: int) -> list[int]:
+        """Sort columns centre-first for better move ordering."""
+        center = cols / 2
+        return sorted(valid, key=lambda c: abs(center - c))
 
-        def evaluate_window(window):
-            s = 0
-            if window.count(self.player_id) == 4:
-                s += 100
-            elif window.count(self.player_id) == 3 and window.count(0) == 1:
-                s += 10
-            elif window.count(self.player_id) == 2 and window.count(0) == 2:
-                s += 5
-            if window.count(self.opponent_id) == 3 and window.count(0) == 1:
-                s -= 80
-            return s
+    def _board_key(self, state) -> tuple:
+        """Hashable board representation for the transposition table."""
+        return (state.board.tobytes(), state.current_player)
 
-        # Horizontal
-        for row in range(ROWS):
-            for col in range(COLS - 3):
-                window = list(board[row, col:col + 4])
-                score += evaluate_window(window)
+    def _terminal_score(self, game) -> int:
+        """
+        Return the terminal score once is_terminal_node is True.
+        Distinguishes win / loss / draw using game.winning_move.
+        """
+        if game.winning_move(self.player_id):
+            return 100000000000000
+        if game.winning_move(self.opponent_id):
+            return -100000000000000
+        return 0    # Draw — board full, no winner
 
-        # Vertical
-        for col in range(COLS):
-            for row in range(ROWS - 3):
-                window = list(board[row:row + 4, col])
-                score += evaluate_window(window)
+    def _score_board_fast(self, state) -> int:
+        board_td = np.flipud(state.board)   # top-down orientation
+        cols     = state.column_count
+        center   = cols // 2
+        score    = 0
 
-        # Positive diagonal
-        for row in range(ROWS - 3):
-            for col in range(COLS - 3):
-                window = [board[row + i][col + i] for i in range(4)]
-                score += evaluate_window(window)
+        # ── Centre-column bonus (vectorized) ─────────────────────── #
+        player_mask = (board_td == self.player_id)
+        score += 3 * int(np.sum(player_mask[:, center]))
 
-        # Negative diagonal
-        for row in range(3, ROWS):
-            for col in range(COLS - 3):
-                window = [board[row - i][col + i] for i in range(4)]
-                score += evaluate_window(window)
+        # ── Window scoring via Evaluation.evaluate_window ─────────── #
+        for idx in self._windows:
+            window = [int(board_td[r][c]) for r, c in idx]
+            score += self._eval.evaluate_window(state, window)
 
         return score
 
-    def _minmax(self, board, depth, maximizing_player):
-        valid_locations = self._get_valid_moves_from_board(board)
-        is_terminal = self._is_terminal_node(board)
+    # ------------------------------------------------------------------ #
+    #  Public interface                                                    #
+    # ------------------------------------------------------------------ #
 
-        if depth == 0 or is_terminal:
-            if is_terminal:
-                if self._has_won(board, self.player_id):
-                    return float('inf'), None
-                elif self._has_won(board, self.opponent_id):
-                    return float('-inf'), None
-                else:
-                    return 0, None
-            else:
-                return self._evaluate_board(board), None
+    def select_move(self, game) -> int:
+        self._tt.clear()  # Fresh table each root call (avoids stale entries)
+        self._ensure_windows(game.row_count, game.column_count)
 
-        if maximizing_player:
-            value = float('-inf')
-            best_col = random.choice(valid_locations)
-            for col in valid_locations:
-                new_board = self._simulate_move(board, col, self.player_id)
-                new_score, _ = self._minmax(new_board, depth - 1, False)
-                if new_score > value:
-                    value = new_score
-                    best_col = col
-            return value, best_col
-        else:
-            value = float('inf')
-            best_col = random.choice(valid_locations)
-            for col in valid_locations:
-                new_board = self._simulate_move(board, col, self.opponent_id)
-                new_score, _ = self._minmax(new_board, depth - 1, True)
-                if new_score < value:
-                    value = new_score
-                    best_col = col
-            return value, best_col
+        valid = self.get_valid_moves(game)
+        if not valid:
+            return -1
 
-    def select_move(self, game):
-        valid_moves = super().get_valid_moves(game)
-        best_score = float('-inf')
-        best_col = random.choice(valid_moves)
+        valid = self._order_moves(valid, game.column_count)
 
-        for col in valid_moves:
-            board_copy = self._simulate_move(game.board, col, self.player_id)
-            score, _ = self._minmax(board_copy, self.depth - 1, False)
+        # ── Pass 1: instant win ───────────────────────────────────── #
+        for col in valid:
+            child = game.clone()
+            success, row = child.make_move(col)
+            if success and child.check_winner(row, col, self.player_id):
+                return col
+
+        # ── Pass 2: forced block (opponent wins next turn) ────────── #
+        for col in valid:
+            child = game.clone()
+            child.current_player = self.opponent_id
+            success, row = child.make_move(col)
+            if success and child.check_winner(row, col, self.opponent_id):
+                return col
+
+        # ── Pass 3: full minimax search ───────────────────────────── #
+        best_col   = valid[0]
+        best_score = -math.inf
+
+        for col in valid:
+            child = game.clone()
+            success, row = child.make_move(col)
+            if not success:
+                continue
+
+            child.switch_player()
+            score = self._minimax(child, self.max_depth - 1)
+
             if score > best_score:
                 best_score = score
-                best_col = col
+                best_col   = col
 
         return best_col
+
+    # ------------------------------------------------------------------ #
+    #  Recursive search                                                    #
+    # ------------------------------------------------------------------ #
+
+    def _minimax(self, state, depth: int) -> int:
+        is_maximizing = (state.current_player == self.player_id)
+
+        # ── Transposition table lookup ────────────────────────────── #
+        key = self._board_key(state)
+        if key in self._tt:
+            cached_score, cached_depth = self._tt[key]
+            if cached_depth >= depth:
+                return cached_score
+
+        # ── Terminal check via Evaluation ─────────────────────────── #
+        if self._eval.is_terminal_node(state):
+            result = self._terminal_score(state)
+            self._tt[key] = (result, depth)
+            return result
+
+        # ── Leaf node: heuristic via optimized scorer ─────────────── #
+        if depth == 0:
+            result = self._score_board_fast(state)
+            self._tt[key] = (result, depth)
+            return result
+
+        # Centre-first move ordering at every level
+        valid = self._order_moves(self.get_valid_moves(state), state.column_count)
+
+        if is_maximizing:
+            best = -math.inf
+            for col in valid:
+                child = state.clone()
+                success, row = child.make_move(col)
+                if not success:
+                    continue
+                if child.check_winner(row, col, self.player_id):
+                    result = 100000000000000 + depth    # Win — prefer faster
+                    self._tt[key] = (result, depth)
+                    return result
+                child.switch_player()
+                best = max(best, self._minimax(child, depth - 1))
+            self._tt[key] = (best, depth)
+            return best
+        else:
+            best = math.inf
+            for col in valid:
+                child = state.clone()
+                success, row = child.make_move(col)
+                if not success:
+                    continue
+                if child.check_winner(row, col, self.opponent_id):
+                    result = -100000000000000 - depth   # Loss — prefer slower
+                    self._tt[key] = (result, depth)
+                    return result
+                child.switch_player()
+                best = min(best, self._minimax(child, depth - 1))
+            self._tt[key] = (best, depth)
+            return best

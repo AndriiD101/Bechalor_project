@@ -1,0 +1,25 @@
+where to look for
+https://paperpile.com/g/academic-search-engines/
+
+here i can take some info
+https://tromp.github.io/c4/connect4_thesis.pdf //first ever solved
+https://arxiv.org/pdf/2405.16595
+https://www.youtube.com/watch?v=sHf7NBx9WrE
+https://www.mililink.com/upload/article/279817393aams_vol_216_april_2022_a25_p3303-3313_kavita_sheoran,_et_al..
+https://www.scirp.org/pdf/am_2023061214362735.pdf
+
+implemented minmax and alfabeta for connect 4
+https://github.com/chloedia/Connect4
+https://medium.com/swlh/optimizing-decision-making-with-the-minimax-ai-algorithm-69cce500c6d6
+
+mcts
+https://github.com/floriangardin/connect4-mcts
+
+implemented DQN
+https://github.com/neoyung/connect-4
+
+Minimax Agent with Alpha-Beta Pruning
+https://github.com/bryanjsanchez/ConnectFour
+
+Minimax and Q-learning
+https://github.com/ThomasLeMontagner/Connect4Game_RL
