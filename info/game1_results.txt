@@ -1,0 +1,35 @@
+==============================================================
+  BEST PARAMS PER AGENT  (avg P1 win-rate across all P2 opponents)
+==============================================================
+
+  AlphaBeta  (6 param combos tested)
+    best   {'max_depth': 6}
+           avg win-rate 82.1%  over 18 matchups
+    worst  {'max_depth': 1}
+           avg win-rate 47.4%  over 18 matchups
+
+  MCTS  (4 param combos tested)
+    best   {'max_iterations': 5000}
+           avg win-rate 25.4%  over 18 matchups
+    worst  {'max_iterations': 20000}
+           avg win-rate 22.7%  over 18 matchups
+
+  MinMax  (6 param combos tested)
+    best   {'max_depth': 6}
+           avg win-rate 88.2%  over 18 matchups
+    worst  {'max_depth': 1}
+           avg win-rate 47.9%  over 18 matchups
+
+  Random  (1 param combos tested)
+    best   {}
+           avg win-rate 5.1%  over 18 matchups
+    worst  {}
+           avg win-rate 5.1%  over 18 matchups
+
+  RuleBased  (1 param combos tested)
+    best   {}
+           avg win-rate 34.4%  over 18 matchups
+    worst  {}
+           avg win-rate 34.4%  over 18 matchups
+
+==============================================================

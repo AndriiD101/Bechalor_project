@@ -1,0 +1,65 @@
+========================================================
+  P1 : MCTS[max_iterations=5000]
+  P2 : AlphaBeta[max_depth=4]
+  P1 params : {'max_iterations': 5000}
+  P2 params : {'max_depth': 4}
+  Games     : 50
+========================================================
+
+Game 01: Player_1        (11.46s)
+Game 02: Player_2        (12.10s)
+Game 03: Player_2        (8.27s)
+Game 04: Player_2        (8.52s)
+Game 05: Player_2        (9.44s)
+Game 06: Player_2        (11.65s)
+Game 07: Player_2        (12.79s)
+Game 08: Player_2        (11.61s)
+Game 09: Player_2        (7.36s)
+Game 10: Player_2        (8.42s)
+Game 11: Player_2        (11.95s)
+Game 12: Player_2        (9.00s)
+Game 13: Player_2        (9.98s)
+Game 14: Player_2        (12.29s)
+Game 15: Player_2        (8.91s)
+Game 16: Player_2        (14.07s)
+Game 17: Player_2        (11.68s)
+Game 18: Player_2        (9.58s)
+Game 19: Player_2        (10.63s)
+Game 20: Player_2        (7.71s)
+Game 21: Player_2        (7.96s)
+Game 22: Player_2        (8.05s)
+Game 23: Player_2        (8.96s)
+Game 24: Player_2        (12.47s)
+Game 25: Player_1        (11.38s)
+Game 26: Player_2        (7.68s)
+Game 27: Player_2        (13.29s)
+Game 28: Player_2        (8.05s)
+Game 29: Player_2        (8.42s)
+Game 30: Player_2        (9.08s)
+Game 31: Player_2        (8.77s)
+Game 32: Player_2        (13.75s)
+Game 33: Player_2        (8.47s)
+Game 34: Player_2        (12.47s)
+Game 35: Player_2        (10.30s)
+Game 36: Player_2        (9.33s)
+Game 37: Player_2        (13.86s)
+Game 38: Player_2        (9.21s)
+Game 39: Player_2        (11.49s)
+Game 40: Player_2        (11.08s)
+Game 41: Player_2        (9.07s)
+Game 42: Player_2        (9.42s)
+Game 43: Player_2        (8.71s)
+Game 44: Player_2        (10.89s)
+Game 45: Player_2        (12.49s)
+Game 46: Player_2        (12.47s)
+Game 47: Player_2        (9.13s)
+Game 48: Player_2        (12.04s)
+Game 49: Player_2        (10.08s)
+Game 50: Player_2        (8.09s)
+
+--------------------------------------------------------
+  P1 wins  : 2  (4%)
+  P2 wins  : 48  (96%)
+  Draws    : 0
+  Time     : 513.90s
+--------------------------------------------------------

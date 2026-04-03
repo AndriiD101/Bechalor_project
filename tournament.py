@@ -59,9 +59,9 @@ PARAM_SWEEP = {
         "max_iterations": [5000, 10000, 15000, 20000]
     },
     # ── DQN ───────────────────────────────────────────────────────────
-    "DQN": {
-        "model_path": ["checkpoints/dqn_final.pth"],
-    },
+    # "DQN": {
+    #     "model_path": ["checkpoints/dqn_final.pth"],
+    # },
 }
 
 GAMES_PER_MATCHUP = 50    # games per ordered (P1-variant, P2-variant) pair
@@ -107,16 +107,16 @@ def make_agent(name: str, player_id: int, params: dict):
         return alfabetapruning_agent.AlphaBetaAgent(player_id, **params)
     elif name == "MCTS":
         return mcts_agent.MCTSAgent(player_id=player_id, **params)
-    elif name == "DQN":
-        model_path = params.get("model_path", DQN_MODEL_PATH)
-        agent = DQNAgent(player_id)
-        try:
-            # Use the agent's own load() — auto-detects legacy vs current architecture
-            agent.load(model_path)
-            agent.epsilon = 0.0
-        except FileNotFoundError:
-            print(f"  [WARNING] DQN weights not found at '{model_path}' — playing randomly.")
-        return agent
+    # elif name == "DQN":
+    #     model_path = params.get("model_path", DQN_MODEL_PATH)
+    #     agent = DQNAgent(player_id)
+    #     try:
+    #         # Use the agent's own load() — auto-detects legacy vs current architecture
+    #         agent.load(model_path)
+    #         agent.epsilon = 0.0
+    #     except FileNotFoundError:
+    #         print(f"  [WARNING] DQN weights not found at '{model_path}' — playing randomly.")
+    #     return agent
     else:
         raise ValueError(f"Unknown agent: '{name}'")
 

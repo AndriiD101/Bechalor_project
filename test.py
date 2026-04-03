@@ -29,12 +29,12 @@ if __name__ == "__main__":
     # agent1 = rule_based_agent.RuleBasedAgent(1)
     # agent1 = alfabetapruning_agent.AlphaBetaAgent(1, max_depth=6)
     # agent1 = minmax_agent.MinMaxAgent(1, max_depth=8) 
-    agent1 = mcts_agent.MCTSAgent(1, max_iterations=30000)
+    agent1 = mcts_agent.MCTSAgent(1, max_iterations=20000)
     
     # Гравець 2: Обирай супротивника (просто розкоментуй потрібного)
     # agent2 = random_agent.RandomAgent(2)
     # agent2 = rule_based_agent.RuleBasedAgent(2)
-    agent2 = minmax_agent.MinMaxAgent(2, max_depth=4) 
+    agent2 = minmax_agent.MinMaxAgent(2, max_depth=6) 
     # agent2 = alfabetapruning_agent.AlphaBetaAgent(2, max_depth=8)
     # agent2 = mcts_agent.MCTSAgent(2)
     

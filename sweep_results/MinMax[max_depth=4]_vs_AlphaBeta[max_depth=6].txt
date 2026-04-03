@@ -1,0 +1,65 @@
+========================================================
+  P1 : MinMax[max_depth=4]
+  P2 : AlphaBeta[max_depth=6]
+  P1 params : {'max_depth': 4}
+  P2 params : {'max_depth': 6}
+  Games     : 50
+========================================================
+
+Game 01: Draw            (7.67s)
+Game 02: Draw            (7.81s)
+Game 03: Draw            (7.63s)
+Game 04: Draw            (7.68s)
+Game 05: Draw            (7.70s)
+Game 06: Draw            (7.65s)
+Game 07: Draw            (7.68s)
+Game 08: Draw            (7.68s)
+Game 09: Draw            (7.99s)
+Game 10: Draw            (7.82s)
+Game 11: Draw            (7.68s)
+Game 12: Draw            (7.58s)
+Game 13: Draw            (7.66s)
+Game 14: Draw            (7.69s)
+Game 15: Draw            (7.69s)
+Game 16: Draw            (7.70s)
+Game 17: Draw            (7.58s)
+Game 18: Draw            (7.86s)
+Game 19: Draw            (7.73s)
+Game 20: Draw            (7.65s)
+Game 21: Draw            (7.73s)
+Game 22: Draw            (7.65s)
+Game 23: Draw            (7.69s)
+Game 24: Draw            (7.61s)
+Game 25: Draw            (7.74s)
+Game 26: Draw            (7.63s)
+Game 27: Draw            (7.68s)
+Game 28: Draw            (7.63s)
+Game 29: Draw            (7.61s)
+Game 30: Draw            (7.68s)
+Game 31: Draw            (7.66s)
+Game 32: Draw            (7.56s)
+Game 33: Draw            (7.85s)
+Game 34: Draw            (7.64s)
+Game 35: Draw            (7.69s)
+Game 36: Draw            (7.69s)
+Game 37: Draw            (7.61s)
+Game 38: Draw            (7.67s)
+Game 39: Draw            (7.69s)
+Game 40: Draw            (7.59s)
+Game 41: Draw            (7.83s)
+Game 42: Draw            (7.57s)
+Game 43: Draw            (7.72s)
+Game 44: Draw            (7.70s)
+Game 45: Draw            (7.64s)
+Game 46: Draw            (7.65s)
+Game 47: Draw            (7.62s)
+Game 48: Draw            (7.61s)
+Game 49: Draw            (7.79s)
+Game 50: Draw            (7.67s)
+
+--------------------------------------------------------
+  P1 wins  : 0  (0%)
+  P2 wins  : 0  (0%)
+  Draws    : 50
+  Time     : 384.22s
+--------------------------------------------------------
