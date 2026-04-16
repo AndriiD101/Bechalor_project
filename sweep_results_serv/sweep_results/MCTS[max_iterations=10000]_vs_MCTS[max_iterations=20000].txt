@@ -1,0 +1,65 @@
+========================================================
+  P1 : MCTS[max_iterations=10000]
+  P2 : MCTS[max_iterations=20000]
+  P1 params : {'max_iterations': 10000}
+  P2 params : {'max_iterations': 20000}
+  Games     : 50
+========================================================
+
+Game 01: Player_2        (200.40s)
+Game 02: Player_2        (157.98s)
+Game 03: Player_2        (211.86s)
+Game 04: Player_1        (184.09s)
+Game 05: Player_1        (177.01s)
+Game 06: Player_2        (189.24s)
+Game 07: Player_1        (200.00s)
+Game 08: Draw            (191.61s)
+Game 09: Player_2        (143.38s)
+Game 10: Draw            (228.41s)
+Game 11: Player_2        (178.55s)
+Game 12: Player_1        (200.14s)
+Game 13: Player_1        (126.91s)
+Game 14: Player_2        (219.84s)
+Game 15: Player_2        (186.53s)
+Game 16: Player_1        (180.93s)
+Game 17: Player_2        (161.67s)
+Game 18: Player_2        (171.38s)
+Game 19: Player_2        (148.57s)
+Game 20: Player_2        (158.53s)
+Game 21: Player_1        (179.77s)
+Game 22: Player_2        (171.95s)
+Game 23: Player_2        (187.97s)
+Game 24: Player_2        (146.15s)
+Game 25: Draw            (218.38s)
+Game 26: Player_2        (181.85s)
+Game 27: Player_2        (144.03s)
+Game 28: Draw            (204.88s)
+Game 29: Player_2        (194.58s)
+Game 30: Player_2        (192.16s)
+Game 31: Player_1        (189.92s)
+Game 32: Draw            (211.77s)
+Game 33: Player_1        (153.41s)
+Game 34: Player_1        (181.14s)
+Game 35: Player_2        (191.72s)
+Game 36: Player_1        (180.57s)
+Game 37: Player_2        (214.43s)
+Game 38: Player_2        (160.13s)
+Game 39: Player_1        (176.96s)
+Game 40: Player_2        (190.41s)
+Game 41: Player_1        (148.78s)
+Game 42: Draw            (223.92s)
+Game 43: Player_1        (124.31s)
+Game 44: Player_2        (132.33s)
+Game 45: Player_2        (169.48s)
+Game 46: Player_1        (190.41s)
+Game 47: Player_1        (186.62s)
+Game 48: Player_2        (187.11s)
+Game 49: Player_1        (154.05s)
+Game 50: Player_2        (193.09s)
+
+--------------------------------------------------------
+  P1 wins  : 17  (34%)
+  P2 wins  : 27  (54%)
+  Draws    : 6
+  Time     : 8999.33s
+--------------------------------------------------------
