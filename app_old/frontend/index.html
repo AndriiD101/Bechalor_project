@@ -1,0 +1,1779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connect 4 Arena</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121c;
+    --surface2: #1a1a28;
+    --border: #2a2a45;
+    --accent: #f7c948;
+    --accent2: #ff4d6d;
+    --p1: #f7c948;
+    --p2: #ff4d6d;
+    --empty: #1e1e2e;
+    --text: #e8e8f0;
+    --muted: #6060a0;
+    --glow1: rgba(247,201,72,0.4);
+    --glow2: rgba(255,77,109,0.4);
+    --font-pixel: 'Press Start 2P', monospace;
+    --font-mono: 'Space Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline effect */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* Stars background */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 80%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 15%, rgba(255,255,255,0.25) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 60%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 30%, rgba(255,255,255,0.15) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app { position: relative; z-index: 1; }
+
+  /* ── Header ── */
+  header {
+    text-align: center;
+    padding: 2rem 1rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-family: var(--font-pixel);
+    font-size: clamp(1rem, 3vw, 1.6rem);
+    letter-spacing: 0.15em;
+    background: linear-gradient(135deg, var(--p1), var(--p2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    margin-bottom: 0.4rem;
+  }
+
+  .logo-sub {
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+
+  nav {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .nav-btn {
+    font-family: var(--font-pixel);
+    font-size: 0.55rem;
+    padding: 0.6rem 1.2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+
+  .nav-btn:hover, .nav-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 12px var(--glow1);
+  }
+
+  /* ── Layout ── */
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+  }
+
+  /* ── Panels / Views ── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── Setup screen ── */
+  .setup-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 640px) {
+    .setup-grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+  }
+
+  .card-title {
+    font-family: var(--font-pixel);
+    font-size: 0.6rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mode-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .mode-btn {
+    font-family: var(--font-pixel);
+    font-size: 0.5rem;
+    padding: 1rem 0.5rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    line-height: 1.8;
+  }
+
+  .mode-btn .mode-icon { font-size: 1.5rem; display: block; margin-bottom: 0.5rem; }
+  .mode-btn:hover { border-color: var(--accent); color: var(--text); }
+  .mode-btn.selected {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(247,201,72,0.05);
+    box-shadow: 0 0 16px var(--glow1);
+  }
+
+  .player-setup {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .player-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 1rem;
+  }
+
+  .player-label {
+    font-family: var(--font-pixel);
+    font-size: 0.5rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .chip {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  .chip.p1 { background: var(--p1); box-shadow: 0 0 8px var(--glow1); }
+  .chip.p2 { background: var(--p2); box-shadow: 0 0 8px var(--glow2); }
+
+  label {
+    display: block;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-bottom: 0.3rem;
+  }
+
+  select, input[type="text"], input[type="number"], input[type="range"] {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.5rem 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    margin-bottom: 0.75rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  select:focus, input:focus { border-color: var(--accent); }
+
+  .agent-params { margin-top: 0.5rem; }
+
+  .param-row { margin-bottom: 0.6rem; }
+  .param-row label { font-size: 0.6rem; }
+  .range-row { display: flex; align-items: center; gap: 0.5rem; }
+  .range-row input[type="range"] { margin: 0; flex: 1; }
+  .range-val { font-size: 0.65rem; color: var(--accent); min-width: 3rem; text-align: right; }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    height: 4px;
+    background: var(--border);
+    padding: 0;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .btn-primary {
+    font-family: var(--font-pixel);
+    font-size: 0.6rem;
+    padding: 0.9rem 2rem;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+    width: 100%;
+  }
+
+  .btn-primary:hover {
+    background: #ffe066;
+    box-shadow: 0 0 20px var(--glow1);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    font-family: var(--font-pixel);
+    font-size: 0.55rem;
+    padding: 0.7rem 1.4rem;
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+  }
+
+  .btn-secondary:hover {
+    background: rgba(247,201,72,0.08);
+    box-shadow: 0 0 12px var(--glow1);
+  }
+
+  .btn-danger {
+    font-family: var(--font-pixel);
+    font-size: 0.55rem;
+    padding: 0.7rem 1.4rem;
+    background: transparent;
+    color: var(--accent2);
+    border: 1px solid var(--accent2);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-danger:hover { background: rgba(255,77,109,0.08); }
+
+  /* ── Game screen ── */
+  .game-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr 220px;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  @media (max-width: 900px) {
+    .game-layout {
+      grid-template-columns: 1fr;
+    }
+    .sidebar-left { order: 2; }
+    .game-center { order: 1; }
+    .sidebar-right { order: 3; }
+  }
+
+  .sidebar-left, .sidebar-right {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  /* Player info cards */
+  .player-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 1rem;
+    transition: all 0.3s;
+  }
+
+  .player-card.active-turn {
+    border-color: var(--accent);
+    box-shadow: 0 0 16px var(--glow1);
+  }
+
+  .player-card.active-turn.p2-active {
+    border-color: var(--accent2);
+    box-shadow: 0 0 16px var(--glow2);
+  }
+
+  .player-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .player-chip-big {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .player-chip-big.p1 {
+    background: var(--p1);
+    box-shadow: 0 0 12px var(--glow1);
+  }
+
+  .player-chip-big.p2 {
+    background: var(--p2);
+    box-shadow: 0 0 12px var(--glow2);
+  }
+
+  .player-name {
+    font-family: var(--font-pixel);
+    font-size: 0.5rem;
+    letter-spacing: 0.05em;
+  }
+
+  .player-type-badge {
+    font-size: 0.6rem;
+    color: var(--muted);
+  }
+
+  .move-counter {
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  .turn-indicator {
+    font-family: var(--font-pixel);
+    font-size: 0.45rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* Game board */
+  .game-center { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+
+  .status-bar {
+    font-family: var(--font-pixel);
+    font-size: 0.55rem;
+    letter-spacing: 0.08em;
+    color: var(--text);
+    text-align: center;
+    padding: 0.6rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    width: 100%;
+    max-width: 500px;
+    min-height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .status-bar.win {
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 20px var(--glow1);
+    animation: pulse 1s ease infinite alternate;
+  }
+
+  .status-bar.win.p2-win {
+    border-color: var(--accent2);
+    color: var(--accent2);
+    box-shadow: 0 0 20px var(--glow2);
+  }
+
+  @keyframes pulse {
+    from { box-shadow: 0 0 10px var(--glow1); }
+    to   { box-shadow: 0 0 30px var(--glow1); }
+  }
+
+  .board-container {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    padding: 0.75rem;
+    position: relative;
+  }
+
+  /* Column hover arrows */
+  .col-arrows {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 4px;
+    padding: 0 0;
+  }
+
+  .col-arrow {
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: transparent;
+    font-size: 0.8rem;
+    transition: color 0.15s;
+    border: 1px solid transparent;
+  }
+
+  .col-arrow:hover { color: var(--accent); }
+  .col-arrow.hovered { color: var(--accent); }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+
+  .cell {
+    width: clamp(44px, 8vw, 64px);
+    height: clamp(44px, 8vw, 64px);
+    background: var(--empty);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+    border: 2px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cell:hover { border-color: var(--accent); transform: scale(1.05); }
+
+  .cell.p1 {
+    background: var(--p1);
+    border-color: #ffd700;
+    box-shadow: 0 0 10px var(--glow1), inset 0 -3px 6px rgba(0,0,0,0.3);
+    animation: dropIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  .cell.p2 {
+    background: var(--p2);
+    border-color: #ff1a44;
+    box-shadow: 0 0 10px var(--glow2), inset 0 -3px 6px rgba(0,0,0,0.3);
+    animation: dropIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  .cell.winning {
+    animation: winPulse 0.6s ease infinite alternate !important;
+  }
+
+  .cell.p1.winning { animation: winPulse1 0.5s ease infinite alternate !important; }
+  .cell.p2.winning { animation: winPulse2 0.5s ease infinite alternate !important; }
+
+  @keyframes dropIn {
+    from { transform: scale(0.4); opacity: 0.5; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes winPulse1 {
+    from { box-shadow: 0 0 8px var(--glow1); transform: scale(1); }
+    to   { box-shadow: 0 0 24px var(--glow1); transform: scale(1.1); }
+  }
+
+  @keyframes winPulse2 {
+    from { box-shadow: 0 0 8px var(--glow2); transform: scale(1); }
+    to   { box-shadow: 0 0 24px var(--glow2); transform: scale(1.1); }
+  }
+
+  .cell.ghost-p1 { background: rgba(247,201,72,0.15) !important; border-color: rgba(247,201,72,0.3) !important; }
+  .cell.ghost-p2 { background: rgba(255,77,109,0.15) !important; border-color: rgba(255,77,109,0.3) !important; }
+
+  .game-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* AvA controls */
+  .ava-controls {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .speed-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+
+  /* Move history */
+  .move-log {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    max-height: 280px;
+    overflow-y: auto;
+  }
+
+  .move-log-title {
+    font-family: var(--font-pixel);
+    font-size: 0.45rem;
+    color: var(--muted);
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.1em;
+  }
+
+  .move-entry {
+    font-size: 0.65rem;
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .move-entry .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .move-entry .dot.p1 { background: var(--p1); }
+  .move-entry .dot.p2 { background: var(--p2); }
+  .move-entry .move-num { color: var(--muted); min-width: 1.5rem; }
+
+  /* ── History view ── */
+  .history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.72rem;
+  }
+
+  .history-table th {
+    font-family: var(--font-pixel);
+    font-size: 0.45rem;
+    color: var(--muted);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.08em;
+  }
+
+  .history-table td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: var(--text);
+  }
+
+  .history-table tr:hover td { background: var(--surface2); cursor: pointer; }
+
+  .badge {
+    display: inline-block;
+    font-size: 0.6rem;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid;
+    border-radius: 2px;
+  }
+
+  .badge.hvh { color: #7c83ff; border-color: #7c83ff; }
+  .badge.hva { color: #4ecdc4; border-color: #4ecdc4; }
+  .badge.ava { color: var(--accent2); border-color: var(--accent2); }
+  .badge.win1 { color: var(--p1); border-color: var(--p1); }
+  .badge.win2 { color: var(--p2); border-color: var(--p2); }
+  .badge.draw { color: var(--muted); border-color: var(--muted); }
+
+  /* Stats */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 1.25rem;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-family: var(--font-pixel);
+    font-size: 1.5rem;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 0.4rem;
+  }
+
+  .stat-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 2px solid var(--accent);
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 0 40px var(--glow1);
+    text-align: center;
+  }
+
+  .modal-title {
+    font-family: var(--font-pixel);
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--p1), var(--p2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .modal-subtitle { color: var(--muted); font-size: 0.75rem; margin-bottom: 1.5rem; }
+
+  .modal-board-mini {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    margin: 1rem auto;
+    max-width: 280px;
+  }
+
+  .mini-cell {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--empty);
+    border: 1px solid var(--border);
+  }
+
+  .mini-cell.p1 { background: var(--p1); }
+  .mini-cell.p2 { background: var(--p2); }
+
+  .modal-actions { display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; }
+
+  /* Loading spinner */
+  .thinking {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+
+  .thinking.visible { display: flex; }
+
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* History detail mini board */
+  .replay-board {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    max-width: 350px;
+    margin: 1rem auto;
+  }
+
+  .replay-cell {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--empty);
+    border: 1px solid var(--border);
+  }
+
+  .replay-cell.p1 { background: var(--p1); box-shadow: 0 0 6px var(--glow1); }
+  .replay-cell.p2 { background: var(--p2); box-shadow: 0 0 6px var(--glow2); }
+
+  /* Misc */
+  .empty-state {
+    text-align: center;
+    color: var(--muted);
+    padding: 3rem;
+    font-size: 0.75rem;
+  }
+
+  .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">◆ CONNECT 4 ◆ ARENA</div>
+    <div class="logo-sub">AI Battle Ground</div>
+    <nav>
+      <button class="nav-btn active" onclick="showView('setup')">⊕ NEW GAME</button>
+      <button class="nav-btn" onclick="showView('game')" id="nav-game" style="display:none">▶ GAME</button>
+      <button class="nav-btn" onclick="showView('tournament')">🏆 TOURNAMENT</button>
+      <button class="nav-btn" onclick="showView('history'); loadHistory()">◈ HISTORY</button>
+    </nav>
+  </header>
+
+  <main>
+    <div class="view active" id="view-setup">
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-title">◆ SELECT GAME MODE</div>
+        <div class="mode-grid">
+          <button class="mode-btn selected" id="mode-hvh" onclick="selectMode('hvh')">
+            <span class="mode-icon">👤👤</span>HUMAN<br>vs<br>HUMAN
+          </button>
+          <button class="mode-btn" id="mode-hva" onclick="selectMode('hva')">
+            <span class="mode-icon">👤🤖</span>HUMAN<br>vs<br>AGENT
+          </button>
+          <button class="mode-btn" id="mode-ava" onclick="selectMode('ava')">
+            <span class="mode-icon">🤖🤖</span>AGENT<br>vs<br>AGENT
+          </button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-title">◆ CONFIGURE PLAYERS</div>
+        <div class="player-setup">
+          <div class="player-block">
+            <div class="player-label"><span class="chip p1"></span>PLAYER 1</div>
+            <label>Type</label>
+            <select id="p1-type" onchange="updatePlayerUI('p1')"></select>
+            <div id="p1-params" class="agent-params"></div>
+          </div>
+          <div class="player-block">
+            <div class="player-label"><span class="chip p2"></span>PLAYER 2</div>
+            <label>Type</label>
+            <select id="p2-type" onchange="updatePlayerUI('p2')"></select>
+            <div id="p2-params" class="agent-params"></div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="startGame()">▶ START GAME</button>
+    </div>
+
+    <div class="view" id="view-tournament">
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-title">◆ TOURNAMENT SETUP</div>
+        
+        <div class="player-setup" style="margin-bottom: 1.5rem;">
+          <div class="player-block">
+            <div class="player-label"><span class="chip p1"></span>AGENT 1</div>
+            <label>Type</label>
+            <select id="tourney-p1-type" onchange="updatePlayerUI('tourney-p1')"></select>
+            <div id="tourney-p1-params" class="agent-params"></div>
+          </div>
+          <div class="player-block">
+            <div class="player-label"><span class="chip p2"></span>AGENT 2</div>
+            <label>Type</label>
+            <select id="tourney-p2-type" onchange="updatePlayerUI('tourney-p2')"></select>
+            <div id="tourney-p2-params" class="agent-params"></div>
+          </div>
+        </div>
+
+        <div style="max-width: 400px; margin: 0 auto 1.5rem;">
+          <label style="text-align: center; color: var(--accent); font-family: var(--font-pixel); font-size: 0.6rem; margin-bottom: 0.8rem;">NUMBER OF GAMES</label>
+          <input type="number" id="tourney-games" value="10" min="1" max="1000" style="text-align:center; font-size: 1rem; padding: 0.8rem;">
+        </div>
+
+        <button class="btn-primary" id="btn-run-tourney" onclick="runTournament()">▶ START TOURNAMENT</button>
+        <button class="btn-danger" id="btn-stop-tourney" onclick="stopTourney()" style="display:none; width:100%; padding: 0.9rem 2rem; font-family: var(--font-pixel); font-size: 0.6rem;">✕ STOP TOURNAMENT</button>
+      </div>
+
+      <div class="card" id="tourney-results-card" style="display:none">
+        <div class="card-title">◆ TOURNAMENT RESULTS</div>
+        <div style="text-align:center; margin-bottom:1.5rem; font-family: var(--font-pixel); font-size:0.6rem; color:var(--muted); line-height: 1.5;" id="tourney-status">
+          Preparing simulation...
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-val" style="color:var(--p1)" id="tourney-res-p1">0</span>
+            <span class="stat-label" id="tourney-label-p1">P1 WINS</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-val" style="color:var(--p2)" id="tourney-res-p2">0</span>
+            <span class="stat-label" id="tourney-label-p2">P2 WINS</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-val" style="color:var(--muted)" id="tourney-res-draw">0</span>
+            <span class="stat-label">DRAWS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="view-game">
+      <div class="game-layout">
+        <div class="sidebar-left">
+          <div class="player-card" id="card-p1">
+            <div class="player-card-header">
+              <div class="player-chip-big p1"></div>
+              <div>
+                <div class="player-name" id="label-p1">PLAYER 1</div>
+                <div class="player-type-badge" id="type-p1">Human</div>
+              </div>
+            </div>
+            <div class="move-counter">Moves: <span id="moves-p1">0</span></div>
+            <div class="turn-indicator" id="turn-p1" style="display:none">YOUR TURN</div>
+            <div class="thinking" id="thinking-p1" style="margin-top: 0.5rem; justify-content: center;">
+              <div class="spinner"></div><span>Thinking...</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="game-center">
+          <div class="status-bar" id="status-bar">Select mode and start a game</div>
+
+          <div class="board-container">
+            <div class="col-arrows" id="col-arrows">
+              </div>
+            <div class="board" id="board">
+              </div>
+          </div>
+
+          <div class="game-actions" id="game-actions">
+            <button class="btn-secondary" onclick="setupNewGame()">◀ NEW GAME</button>
+            <button class="btn-danger" id="btn-abandon" onclick="abandonGame()">✕ ABANDON</button>
+          </div>
+
+          <div class="ava-controls" id="ava-controls" style="display:none">
+            <button class="btn-secondary" id="btn-step" onclick="stepAva()">⊳ STEP</button>
+            <button class="btn-secondary" id="btn-auto" onclick="toggleAutoPlay()">⏵ AUTO</button>
+            <div>
+              <span class="speed-label">Speed: </span>
+              <select id="ava-speed" style="width:auto; margin:0; padding:0.3rem 0.5rem; font-size:0.65rem">
+                <option value="1500">Slow</option>
+                <option value="700" selected>Normal</option>
+                <option value="200">Fast</option>
+                <option value="50">Turbo</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-right">
+          <div class="player-card" id="card-p2">
+            <div class="player-card-header">
+              <div class="player-chip-big p2"></div>
+              <div>
+                <div class="player-name" id="label-p2">PLAYER 2</div>
+                <div class="player-type-badge" id="type-p2">Human</div>
+              </div>
+            </div>
+            <div class="move-counter">Moves: <span id="moves-p2">0</span></div>
+            <div class="turn-indicator" id="turn-p2" style="display:none">YOUR TURN</div>
+            <div class="thinking" id="thinking-p2" style="margin-top: 0.5rem; justify-content: center;">
+              <div class="spinner"></div><span>Thinking...</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">◆ GAME INFO</div>
+            <div style="font-size:0.65rem; color:var(--muted); line-height:2">
+              Mode: <span id="info-mode" style="color:var(--text)">—</span><br>
+              P1 Moves: <span id="info-moves-p1" style="color:var(--text)">0</span><br>
+              P2 Moves: <span id="info-moves-p2" style="color:var(--text)">0</span><br>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="view-history">
+      <div id="stats-section" style="margin-bottom:1.5rem"></div>
+      <div class="card">
+        <div class="card-title">◆ GAME HISTORY</div>
+        <div id="history-content">
+          <div class="empty-state"><div class="icon">◈</div>Loading history...</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="end-modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">GAME OVER</div>
+    <div class="modal-subtitle" id="modal-subtitle"></div>
+    <div class="modal-board-mini" id="modal-board"></div>
+    <div class="move-log" id="modal-move-log" style="display:none; margin: 1.5rem auto; text-align: left; max-width: 280px; max-height: 200px; overflow-y: auto;"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="setupNewGame()">▶ NEW GAME</button>
+      <button class="btn-secondary" onclick="closeModal(); showView('history'); loadHistory()">◈ HISTORY</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '/api';
+let agents = {};
+let currentMode = 'hvh';
+let gameState = null;
+let gameId = null;
+let autoPlayTimer = null;
+let isAutoPlaying = false;
+let hoveredCol = null;
+
+// Tournament state variables
+let cancelTourney = false;
+
+// ── Boot ───────────────────────────────────────────────────────────── //
+async function boot() {
+  try {
+    const res = await fetch(`${API}/agents`);
+    agents = await res.json();
+    populateAgentDropdowns();
+  } catch(e) {
+    console.error('Failed to load agents', e);
+  }
+}
+
+function populateAgentDropdowns() {
+  const humanOpt = '<option value="human">Human</option>';
+  const agentOpts = Object.entries(agents).map(([k,v]) =>
+    `<option value="${k}">${v.label}</option>`
+  ).join('');
+
+  // Setup view dropdowns
+  document.getElementById('p1-type').innerHTML = humanOpt + agentOpts;
+  document.getElementById('p2-type').innerHTML = humanOpt + agentOpts;
+
+  // Tournament view dropdowns (Agents only)
+  document.getElementById('tourney-p1-type').innerHTML = agentOpts;
+  document.getElementById('tourney-p2-type').innerHTML = agentOpts;
+
+  // Set default unique agents for tournament if possible
+  const keys = Object.keys(agents);
+  if (keys.length > 0) {
+    document.getElementById('tourney-p1-type').value = keys[0];
+    document.getElementById('tourney-p2-type').value = keys[Math.min(1, keys.length - 1)];
+  }
+
+  updatePlayerUI('p1');
+  updatePlayerUI('p2');
+  updatePlayerUI('tourney-p1');
+  updatePlayerUI('tourney-p2');
+}
+
+// ── Mode selection ──────────────────────────────────────────────────── //
+function selectMode(mode) {
+  currentMode = mode;
+  ['hvh','hva','ava'].forEach(m =>
+    document.getElementById(`mode-${m}`).classList.toggle('selected', m === mode)
+  );
+
+  const p1sel = document.getElementById('p1-type');
+  const p2sel = document.getElementById('p2-type');
+
+  if (mode === 'hvh') {
+    p1sel.value = 'human'; p2sel.value = 'human';
+    p1sel.disabled = true; p2sel.disabled = true;
+  } else if (mode === 'hva') {
+    p1sel.value = 'human';
+    p1sel.disabled = false; p2sel.disabled = false;
+    // default p2 to first agent
+    if (p2sel.value === 'human') {
+      const firstAgent = Object.keys(agents)[0];
+      if (firstAgent) p2sel.value = firstAgent;
+    }
+  } else { // ava
+    p1sel.disabled = false; p2sel.disabled = false;
+    if (p1sel.value === 'human') {
+      const first = Object.keys(agents)[0];
+      if (first) p1sel.value = first;
+    }
+    if (p2sel.value === 'human') {
+      const keys = Object.keys(agents);
+      p2sel.value = keys[Math.min(1, keys.length-1)];
+    }
+  }
+
+  updatePlayerUI('p1');
+  updatePlayerUI('p2');
+}
+
+function updatePlayerUI(prefix) {
+  const el = document.getElementById(`${prefix}-type`);
+  if (!el) return;
+  const sel = el.value;
+  const container = document.getElementById(`${prefix}-params`);
+
+  if (sel === 'human' || !agents[sel]) {
+    container.innerHTML = '';
+    return;
+  }
+
+  const params = agents[sel].params || {};
+  if (Object.keys(params).length === 0) {
+    container.innerHTML = '<div style="font-size:0.6rem;color:var(--muted)">No parameters</div>';
+    return;
+  }
+
+  let html = '';
+  for (const [key, spec] of Object.entries(params)) {
+    html += `<div class="param-row">`;
+    html += `<label>${spec.label}</label>`;
+    if (spec.type === 'int' || spec.type === 'float') {
+      const step = spec.type === 'float' ? '0.01' : '1';
+      html += `<div class="range-row">
+        <input type="range" id="${prefix}-${key}"
+          min="${spec.min}" max="${spec.max}" step="${step}" value="${spec.default}"
+          oninput="document.getElementById('${prefix}-${key}-val').textContent=this.value">
+        <span class="range-val" id="${prefix}-${key}-val">${spec.default}</span>
+      </div>`;
+    } else {
+      html += `<input type="text" id="${prefix}-${key}" placeholder="${spec.default}" value="">`;
+    }
+    html += `</div>`;
+  }
+  container.innerHTML = html;
+}
+
+function getPlayerConfig(prefix) {
+  const el = document.getElementById(`${prefix}-type`);
+  if (!el) return {};
+  const sel = el.value;
+  if (sel === 'human' || !agents[sel]) return {};
+  const params = agents[sel].params || {};
+  const config = {};
+  for (const [key, spec] of Object.entries(params)) {
+    const inputEl = document.getElementById(`${prefix}-${key}`);
+    if (!inputEl) continue;
+    const val = inputEl.value || spec.default;
+    config[key] = (spec.type === 'int') ? parseInt(val) :
+                  (spec.type === 'float') ? parseFloat(val) : val;
+  }
+  return config;
+}
+
+// ── Tournament Logic ────────────────────────────────────────────────── //
+async function runTournament() {
+  const numGames = parseInt(document.getElementById('tourney-games').value);
+  if (!numGames || numGames < 1) {
+    alert('Please enter a valid number of games.');
+    return;
+  }
+
+  const p1type = document.getElementById('tourney-p1-type').value;
+  const p2type = document.getElementById('tourney-p2-type').value;
+  const p1cfg  = getPlayerConfig('tourney-p1');
+  const p2cfg  = getPlayerConfig('tourney-p2');
+
+  cancelTourney = false;
+
+  // Setup UI for running
+  document.getElementById('btn-run-tourney').style.display = 'none';
+  document.getElementById('btn-stop-tourney').style.display = 'block';
+  document.getElementById('tourney-results-card').style.display = 'block';
+
+  document.getElementById('tourney-label-p1').textContent = `${agentLabel(p1type)} WINS`;
+  document.getElementById('tourney-label-p2').textContent = `${agentLabel(p2type)} WINS`;
+
+  let results = { p1: 0, p2: 0, draw: 0 };
+  document.getElementById('tourney-res-p1').textContent = '0';
+  document.getElementById('tourney-res-p2').textContent = '0';
+  document.getElementById('tourney-res-draw').textContent = '0';
+
+  for (let i = 1; i <= numGames; i++) {
+    if (cancelTourney) break;
+    document.getElementById('tourney-status').innerHTML = `Running game <b><span style="color:var(--accent)">${i}</span></b> of ${numGames}...`;
+
+    try {
+      const res = await fetch(`${API}/games`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          mode: 'ava',
+          player1_type: p1type,
+          player2_type: p2type,
+          player1_config: p1cfg,
+          player2_config: p2cfg,
+        })
+      });
+
+      if (!res.ok) throw new Error('Failed to start tournament game');
+      let state = await res.json();
+      let tGameId = state.game_id;
+
+      // Play out the game loop
+      while (state.status === 'active') {
+        if (cancelTourney) {
+          await fetch(`${API}/games/${tGameId}`, {method:'DELETE'}).catch(()=>{});
+          break;
+        }
+        const stepRes = await fetch(`${API}/games/${tGameId}/agent-move`, {method:'POST'});
+        if (!stepRes.ok) break;
+        state = await stepRes.json();
+      }
+
+      if (state.status === 'finished') {
+        if (state.winner === 'player1') results.p1++;
+        else if (state.winner === 'player2') results.p2++;
+        else results.draw++;
+
+        document.getElementById('tourney-res-p1').textContent = results.p1;
+        document.getElementById('tourney-res-p2').textContent = results.p2;
+        document.getElementById('tourney-res-draw').textContent = results.draw;
+      }
+    } catch(e) {
+      console.error(e);
+      document.getElementById('tourney-status').textContent = `Error during tournament: ${e.message}`;
+      break;
+    }
+  }
+
+  // Teardown UI
+  document.getElementById('btn-run-tourney').style.display = 'block';
+  document.getElementById('btn-stop-tourney').style.display = 'none';
+  if (cancelTourney) {
+    document.getElementById('tourney-status').textContent = 'Tournament stopped early.';
+  } else {
+    document.getElementById('tourney-status').innerHTML = `<span style="color:var(--accent)">Tournament Complete!</span>`;
+  }
+}
+
+function stopTourney() {
+  cancelTourney = true;
+  document.getElementById('tourney-status').textContent = 'Stopping tournament (finishing current move)...';
+}
+
+// ── Start standard game ─────────────────────────────────────────────── //
+async function startGame() {
+  const p1type = document.getElementById('p1-type').value;
+  const p2type = document.getElementById('p2-type').value;
+  const p1cfg  = getPlayerConfig('p1');
+  const p2cfg  = getPlayerConfig('p2');
+
+  try {
+    const res = await fetch(`${API}/games`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        mode: currentMode,
+        player1_type: p1type,
+        player2_type: p2type,
+        player1_config: p1cfg,
+        player2_config: p2cfg,
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      alert(err.detail || 'Failed to start game');
+      return;
+    }
+
+    gameState = await res.json();
+    gameId = gameState.game_id;
+    stopAutoPlay();
+    _lastRenderedBoard = null;  // force full board rebuild for new game
+
+    showView('game');
+    document.getElementById('nav-game').style.display = '';
+    renderGame(gameState);
+
+    // If AvA, set up controls
+    if (currentMode === 'ava') {
+      document.getElementById('ava-controls').style.display = 'flex';
+    } else {
+      document.getElementById('ava-controls').style.display = 'none';
+    }
+
+    if (gameState.status === 'finished') {
+      handleGameEnd(gameState);
+    }
+  } catch(e) {
+    alert('Error starting game: ' + e.message);
+  }
+}
+
+// ── Board rendering ─────────────────────────────────────────────────── //
+function renderGame(state) {
+  gameState = state;
+  renderBoard(state);
+  renderSidebar(state);
+  updateStatusBar(state);
+}
+
+// Cache the last rendered board for incremental updates
+let _lastRenderedBoard = null;
+
+function renderBoard(state) {
+  const board = state.board;
+  const ROWS = 6, COLS = 7;
+  const boardEl = document.getElementById('board');
+  const arrowsEl = document.getElementById('col-arrows');
+
+  // Build arrows only once per game (not every move)
+  if (arrowsEl.children.length !== COLS) {
+    arrowsEl.innerHTML = '';
+    for (let c = 0; c < COLS; c++) {
+      const arr = document.createElement('div');
+      arr.className = 'col-arrow';
+      arr.textContent = '▼';
+      arr.dataset.col = c;
+      arr.addEventListener('mouseenter', () => setHoverCol(c));
+      arr.addEventListener('mouseleave', () => setHoverCol(null));
+      arr.addEventListener('click', () => humanMove(c));
+      arrowsEl.appendChild(arr);
+    }
+  }
+
+  // Full rebuild only on first render of a new game
+  if (boardEl.children.length !== ROWS * COLS) {
+    boardEl.innerHTML = '';
+    _lastRenderedBoard = null;
+    for (let r = ROWS - 1; r >= 0; r--) {
+      for (let c = 0; c < COLS; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.dataset.row = r;
+        cell.dataset.col = c;
+        cell.addEventListener('mouseenter', () => setHoverCol(c));
+        cell.addEventListener('mouseleave', () => setHoverCol(null));
+        cell.addEventListener('click', () => humanMove(c));
+        boardEl.appendChild(cell);
+      }
+    }
+  }
+
+  // Incremental update: only touch cells that actually changed
+  const cells = boardEl.querySelectorAll('.cell');
+  for (let r = ROWS - 1; r >= 0; r--) {
+    for (let c = 0; c < COLS; c++) {
+      const val = board[r][c];
+      if (_lastRenderedBoard && _lastRenderedBoard[r][c] === val) continue;
+      // Visual row: row ROWS-1 is at top, row 0 at bottom
+      const visualRow = (ROWS - 1 - r);
+      const cellIdx = visualRow * COLS + c;
+      const cell = cells[cellIdx];
+      if (!cell) continue;
+      cell.classList.remove('p1', 'p2', 'winning', 'ghost-p1', 'ghost-p2');
+      if (val === 1) cell.classList.add('p1');
+      else if (val === 2) cell.classList.add('p2');
+    }
+  }
+  _lastRenderedBoard = board.map(row => row.slice());
+
+  // Highlight winning cells if finished
+  if (state.status === 'finished' && state.winner !== 'draw') {
+    highlightWinners(state);
+  }
+}
+
+function setHoverCol(col) {
+  hoveredCol = col;
+  // Update ghost cells for current player
+  if (!gameState || gameState.status !== 'active') return;
+  const current = gameState.current_player;
+  const isHumanTurn = (
+    (current === 1 && gameState.player1_type === 'human') ||
+    (current === 2 && gameState.player2_type === 'human')
+  );
+  if (!isHumanTurn) return;
+
+  // Clear ghosts
+  document.querySelectorAll('.cell.ghost-p1, .cell.ghost-p2').forEach(c => {
+    c.classList.remove('ghost-p1', 'ghost-p2');
+  });
+  document.querySelectorAll('.col-arrow').forEach(a => a.classList.remove('hovered'));
+
+  if (col === null) return;
+
+  document.querySelectorAll(`.col-arrow[data-col="${col}"]`).forEach(a =>
+    a.classList.add('hovered'));
+
+  // Find the drop row for this column
+  const board = gameState.board;
+  let dropRow = -1;
+  for (let r = 0; r < 6; r++) {
+    if (board[r][col] === 0) { dropRow = r; break; }
+  }
+  if (dropRow === -1) return;
+
+  // Find the cell (rendered row = 5 - dropRow)
+  const cells = document.querySelectorAll('.cell');
+  cells.forEach(cell => {
+    if (parseInt(cell.dataset.col) === col && parseInt(cell.dataset.row) === dropRow) {
+      cell.classList.add(current === 1 ? 'ghost-p1' : 'ghost-p2');
+    }
+  });
+}
+
+function highlightWinners(state) {
+  // Re-check for winning cells by scanning board
+  const board = state.board;
+  const winner = state.winner;
+  const piece = winner === 'player1' ? 1 : 2;
+
+  const cells = document.querySelectorAll('.cell');
+  const ROWS = 6, COLS = 7;
+
+  // Find winning line
+  const winning = new Set();
+
+  const check = (r, c, dr, dc) => {
+    const line = [];
+    for (let i = 0; i < 4; i++) {
+      const nr = r + i*dr, nc = c + i*dc;
+      if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) return;
+      if (board[nr][nc] !== piece) return;
+      line.push(`${nr},${nc}`);
+    }
+    if (line.length === 4) line.forEach(k => winning.add(k));
+  };
+
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (board[r][c] === piece) {
+        check(r,c,0,1); check(r,c,1,0);
+        check(r,c,1,1); check(r,c,1,-1);
+      }
+    }
+  }
+
+  cells.forEach(cell => {
+    const key = `${cell.dataset.row},${cell.dataset.col}`;
+    if (winning.has(key)) cell.classList.add('winning');
+  });
+}
+
+function renderSidebar(state) {
+  // Player labels
+  document.getElementById('label-p1').textContent = 'PLAYER 1';
+  document.getElementById('label-p2').textContent = 'PLAYER 2';
+  document.getElementById('type-p1').textContent = agentLabel(state.player1_type);
+  document.getElementById('type-p2').textContent = agentLabel(state.player2_type);
+  document.getElementById('info-mode').textContent = state.mode.toUpperCase();
+
+  // Count moves per player
+  const moves = state.move_history || [];
+  const m1 = moves.filter(m => m.player === 1).length;
+  const m2 = moves.filter(m => m.player === 2).length;
+  document.getElementById('moves-p1').textContent = m1;
+  document.getElementById('moves-p2').textContent = m2;
+  document.getElementById('info-moves-p1').textContent = m1;
+  document.getElementById('info-moves-p2').textContent = m2;
+
+  // Turn indicators (only blink for HvH mode completely)
+  const isActive = state.status === 'active';
+  const cp = state.current_player;
+  const isHvH = state.mode === 'hvh';
+  document.getElementById('turn-p1').style.display = (isActive && cp === 1 && isHvH) ? 'block' : 'none';
+  document.getElementById('turn-p2').style.display = (isActive && cp === 2 && isHvH) ? 'block' : 'none';
+
+  // Active card highlight (Only glows in Human vs Human mode)
+  document.getElementById('card-p1').classList.toggle('active-turn', isActive && cp === 1 && isHvH);
+  document.getElementById('card-p1').classList.remove('p2-active');
+  document.getElementById('card-p2').classList.toggle('active-turn', isActive && cp === 2 && isHvH);
+  document.getElementById('card-p2').classList.toggle('p2-active', isActive && cp === 2 && isHvH);
+}
+
+function agentLabel(type) {
+  if (type === 'human') return 'Human';
+  return agents[type]?.label || type;
+}
+
+function updateStatusBar(state) {
+  const bar = document.getElementById('status-bar');
+  bar.className = 'status-bar';
+
+  if (state.status === 'active') {
+    const cp = state.current_player;
+    const type = cp === 1 ? state.player1_type : state.player2_type;
+    const isHuman = type === 'human';
+    bar.textContent = isHuman
+      ? `▼ PLAYER ${cp}'S TURN — CLICK A COLUMN`
+      : `◈ PLAYER ${cp} (${agentLabel(type)}) IS THINKING...`;
+  } else if (state.winner === 'draw') {
+    bar.textContent = '◈ DRAW! — BOARD IS FULL';
+    bar.classList.add('win');
+  } else if (state.winner === 'player1') {
+    bar.textContent = '★ PLAYER 1 WINS!';
+    bar.classList.add('win');
+  } else if (state.winner === 'player2') {
+    bar.textContent = '★ PLAYER 2 WINS!';
+    bar.classList.add('win', 'p2-win');
+  }
+}
+
+// ── Human move ────────────────────────────────────────────────────── //
+async function humanMove(col) {
+  if (!gameState || gameState.status !== 'active') return;
+  const cp = gameState.current_player;
+  const isHuman = (
+    (cp === 1 && gameState.player1_type === 'human') ||
+    (cp === 2 && gameState.player2_type === 'human')
+  );
+  if (!isHuman) return;
+
+  // Only show spinner when an agent will respond (HvA). For HvH there's
+  // no computation so the indicator just adds flicker.
+  const agentWillRespond = (
+    (cp === 1 && gameState.player2_type !== 'human') ||
+    (cp === 2 && gameState.player1_type !== 'human')
+  );
+  if (agentWillRespond) setThinking(true, cp === 1 ? 2 : 1);
+  try {
+    const res = await fetch(`${API}/games/${gameId}/move`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({column: col})
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      alert(err.detail);
+      return;
+    }
+    const state = await res.json();
+    renderGame(state);
+    if (state.status === 'finished') handleGameEnd(state);
+  } catch(e) {
+    console.error(e);
+  } finally {
+    if (agentWillRespond) setThinking(false, cp === 1 ? 2 : 1);
+  }
+}
+
+// ── AvA controls ──────────────────────────────────────────────────── //
+async function stepAva() {
+  if (!gameState || gameState.status !== 'active') return;
+  setThinking(true, gameState.current_player);
+  try {
+    const res = await fetch(`${API}/games/${gameId}/agent-move`, {method:'POST'});
+    if (!res.ok) return;
+    const state = await res.json();
+    renderGame(state);
+    if (state.status === 'finished') {
+      stopAutoPlay();
+      handleGameEnd(state);
+    }
+  } catch(e) {
+    console.error(e);
+  } finally {
+    setThinking(false, gameState.current_player);
+  }
+}
+
+function toggleAutoPlay() {
+  if (isAutoPlaying) stopAutoPlay();
+  else startAutoPlay();
+}
+
+function startAutoPlay() {
+  if (!gameState || gameState.status !== 'active') return;
+  isAutoPlaying = true;
+  document.getElementById('btn-auto').textContent = '⏸ PAUSE';
+  scheduleNextMove();
+}
+
+function stopAutoPlay() {
+  isAutoPlaying = false;
+  if (autoPlayTimer) { clearTimeout(autoPlayTimer); autoPlayTimer = null; }
+  document.getElementById('btn-auto').textContent = '⏵ AUTO';
+}
+
+function scheduleNextMove() {
+  if (!isAutoPlaying) return;
+  const speed = parseInt(document.getElementById('ava-speed').value);
+  autoPlayTimer = setTimeout(async () => {
+    if (!isAutoPlaying || !gameState || gameState.status !== 'active') {
+      stopAutoPlay(); return;
+    }
+    await stepAva();
+    if (gameState.status === 'active') scheduleNextMove();
+    else stopAutoPlay();
+  }, speed);
+}
+
+// ── Game end ──────────────────────────────────────────────────────── //
+function handleGameEnd(state) {
+  stopAutoPlay();
+  document.getElementById('btn-abandon').style.display = 'none';
+
+  // Show end modal after short delay
+  setTimeout(() => showEndModal(state), 600);
+}
+
+function showEndModal(state) {
+  const title = document.getElementById('modal-title');
+  const sub   = document.getElementById('modal-subtitle');
+
+  if (state.winner === 'draw') {
+    title.textContent = "IT'S A DRAW!";
+    sub.textContent   = `${state.move_history.length} moves — board is full`;
+  } else {
+    const p = state.winner === 'player1' ? 1 : 2;
+    title.textContent = `PLAYER ${p} WINS!`;
+    const type = p === 1 ? state.player1_type : state.player2_type;
+    sub.textContent = `${agentLabel(type)} wins in ${state.move_history.length} moves`;
+  }
+
+  // Mini board
+  const mini = document.getElementById('modal-board');
+  mini.innerHTML = '';
+  const board = state.board;
+  for (let r = 5; r >= 0; r--) {
+    for (let c = 0; c < 7; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'mini-cell';
+      if (board[r][c] === 1) cell.classList.add('p1');
+      else if (board[r][c] === 2) cell.classList.add('p2');
+      mini.appendChild(cell);
+    }
+  }
+
+  document.getElementById('modal-move-log').style.display = 'none';
+
+  document.getElementById('end-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('end-modal').classList.remove('open');
+}
+
+// ── Misc actions ──────────────────────────────────────────────────── //
+function setupNewGame() {
+  closeModal();
+  stopAutoPlay();
+  if (gameId) {
+    fetch(`${API}/games/${gameId}`, {method:'DELETE'}).catch(() => {});
+    gameId = null;
+  }
+  document.getElementById('btn-abandon').style.display = '';
+  showView('setup');
+  document.getElementById('nav-game').style.display = 'none';
+}
+
+async function abandonGame() {
+  if (!gameId) return;
+  if (!confirm('Abandon current game?')) return;
+  await fetch(`${API}/games/${gameId}`, {method:'DELETE'});
+  setupNewGame();
+}
+
+function setThinking(on, playerNum) {
+  if (playerNum === 1) {
+    document.getElementById('thinking-p1').classList.toggle('visible', on);
+    document.getElementById('thinking-p2').classList.remove('visible');
+  } else if (playerNum === 2) {
+    document.getElementById('thinking-p2').classList.toggle('visible', on);
+    document.getElementById('thinking-p1').classList.remove('visible');
+  } else {
+    document.getElementById('thinking-p1').classList.remove('visible');
+    document.getElementById('thinking-p2').classList.remove('visible');
+  }
+}
+
+// ── Navigation ────────────────────────────────────────────────────── //
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(`view-${name}`).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+}
+
+// ── History ──────────────────────────────────────────────────────── //
+async function loadHistory() {
+  // Load stats
+  try {
+    const res = await fetch(`${API}/stats`);
+    const stats = await res.json();
+    renderStats(stats);
+  } catch(e) {}
+
+  // Load history
+  const histEl = document.getElementById('history-content');
+  histEl.innerHTML = '<div class="empty-state"><div class="icon">◈</div>Loading...</div>';
+
+  try {
+    const res = await fetch(`${API}/history?limit=50`);
+    const records = await res.json();
+    if (!records.length) {
+      histEl.innerHTML = '<div class="empty-state"><div class="icon">◈</div>No games played yet</div>';
+      return;
+    }
+
+    histEl.innerHTML = `
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>#</th><th>MODE</th><th>PLAYER 1</th><th>PLAYER 2</th>
+            <th>WINNER</th><th>MOVES</th><th>DATE</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${records.map(r => `
+            <tr onclick="showHistoryDetail(${r.id})">
+              <td style="color:var(--muted)">${r.id}</td>
+              <td><span class="badge ${r.mode}">${r.mode.toUpperCase()}</span></td>
+              <td>${agentLabel(r.player1_type)}</td>
+              <td>${agentLabel(r.player2_type)}</td>
+              <td>${winnerBadge(r.winner)}</td>
+              <td>${r.total_moves}</td>
+              <td style="color:var(--muted)">${new Date(r.created_at).toLocaleDateString()}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch(e) {
+    histEl.innerHTML = '<div class="empty-state"><div class="icon">⚠</div>Error loading history</div>';
+  }
+}
+
+function renderStats(stats) {
+  const sec = document.getElementById('stats-section');
+  const modes = stats.by_mode || {};
+  const winners = stats.by_winner || {};
+  sec.innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-val">${stats.total_games || 0}</span>
+        <span class="stat-label">TOTAL GAMES</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-val">${modes.hvh || 0}</span>
+        <span class="stat-label">HUMAN VS HUMAN</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-val">${modes.hva || 0}</span>
+        <span class="stat-label">HUMAN VS AGENT</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-val">${modes.ava || 0}</span>
+        <span class="stat-label">AGENT VS AGENT</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-val" style="color:var(--p1)">${winners.player1 || 0}</span>
+        <span class="stat-label">P1 WINS</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-val" style="color:var(--p2)">${winners.player2 || 0}</span>
+        <span class="stat-label">P2 WINS</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-val" style="color:var(--muted)">${winners.draw || 0}</span>
+        <span class="stat-label">DRAWS</span>
+      </div>
+    </div>
+  `;
+}
+
+function winnerBadge(w) {
+  if (w === 'player1') return `<span class="badge win1">P1 WINS</span>`;
+  if (w === 'player2') return `<span class="badge win2">P2 WINS</span>`;
+  if (w === 'draw') return `<span class="badge draw">DRAW</span>`;
+  return `<span style="color:var(--muted)">—</span>`;
+}
+
+async function showHistoryDetail(id) {
+  try {
+    const res = await fetch(`${API}/history/${id}`);
+    const r = await res.json();
+
+    const modal = document.getElementById('end-modal');
+    document.getElementById('modal-title').textContent = `GAME #${r.id}`;
+    document.getElementById('modal-subtitle').textContent =
+      `${r.mode.toUpperCase()} | ${agentLabel(r.player1_type)} vs ${agentLabel(r.player2_type)} | ${r.total_moves} moves`;
+
+    const mini = document.getElementById('modal-board');
+    mini.innerHTML = '';
+    const board = r.final_board;
+    for (let row = 5; row >= 0; row--) {
+      for (let c = 0; c < 7; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'mini-cell';
+        if (board[row][c] === 1) cell.classList.add('p1');
+        else if (board[row][c] === 2) cell.classList.add('p2');
+        mini.appendChild(cell);
+      }
+    }
+
+    const logEl = document.getElementById('modal-move-log');
+    if (r.move_history && r.move_history.length > 0) {
+      logEl.style.display = 'block';
+      logEl.innerHTML = `<div class="move-log-title" style="border-bottom: 1px solid var(--border); margin-bottom: 5px;">MOVE LOG</div>` + 
+      r.move_history.map((m, i) =>
+        `<div class="move-entry">
+          <div class="dot p${m.player}"></div>
+          <span class="move-num">#${i+1}</span>
+          <span>P${m.player} → Col ${m.col + 1}</span>
+        </div>`
+      ).reverse().join('');
+    } else {
+      logEl.style.display = 'none';
+    }
+
+    modal.classList.add('open');
+  } catch(e) {}
+}
+
+boot();
+</script>
+</body>
+</html>

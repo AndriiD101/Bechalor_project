@@ -10,6 +10,7 @@ from agent_factory import AGENT_REGISTRY
 
 router = APIRouter(prefix="/api", tags=["game"])
 
+os.makedirs("uploaded_models", exist_ok=True)
 
 # ── Schemas ──────────────────────────────────────────────────────────────── #
 
@@ -278,3 +279,16 @@ def get_stats(db: Session = Depends(get_db)):
         "by_mode": {m: c for m, c in by_mode},
         "by_winner": {w: c for w, c in by_winner},
     }
+
+@router.post("/upload-model")
+async def upload_model(file: UploadFile = File(...)):
+    """Handles drag-and-drop model uploads for the DQN agent."""
+    if not file.filename.endswith(('.pt', '.pth')):
+        raise HTTPException(400, "Only PyTorch (.pt, .pth) files are allowed")
+
+    # Save the file securely
+    file_path = os.path.join("uploaded_models", file.filename)
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    return {"file_path": file_path}

@@ -61,10 +61,10 @@ try:
                 "type": "string", "default": _DEFAULT_MODEL_PATH,
                 "label": "Model Path (optional)"
             },
-            "epsilon": {
-                "type": "float", "default": 0.0, "min": 0.0, "max": 1.0,
-                "label": "Epsilon (exploration)"
-            }
+            # "epsilon": {
+            #     "type": "float", "default": 0.0, "min": 0.0, "max": 1.0,
+            #     "label": "Epsilon (exploration)"
+            # }
         }
     }
 except ImportError:
@@ -98,7 +98,7 @@ def create_agent(agent_type: str, player_id: int, config: dict = None):
         return DQNAgent(
             player_id,
             model_path=config.get("model_path") or None,
-            epsilon=float(config.get("epsilon", 0.0))
+            # epsilon=float(config.get("epsilon", 0.0))
         )
     else:
         raise ValueError(f"Unknown agent type: {agent_type}")
