@@ -12,14 +12,6 @@ import numpy as np
 # called inside a hot path again.
 
 def _build_window_cache(rows: int = 6, cols: int = 7) -> tuple:
-    """
-    Returns four numpy arrays of shape (N, 4, 2):
-        horiz_wins, vert_wins, diag_wins, anti_wins
-    Each row is one window; each entry is a (row, col) pair.
-
-    Also returns a flat list of all windows combined for callers that
-    do not need to distinguish direction.
-    """
     horiz, vert, diag, anti = [], [], [], []
 
     for r in range(rows):
@@ -64,46 +56,8 @@ def _extract_windows(board: np.ndarray) -> np.ndarray:
 # ------------------------------------------------------------------ #
 
 class RuleBasedAgent(AgentInterface):
-    """
-    Rule-based Connect-4 agent.
-
-    Priority order (unchanged from original):
-      1.  Win immediately
-      2.  Block opponent's immediate win
-      3.  Never play below a game-ending space
-      4.  Build a seven trap (double threat)
-      5.  Block opponent's seven trap
-      6.  Odd-even parity strategy
-      7.  Build open-ended three-in-a-row
-      8.  Block opponent's open-ended three-in-a-row
-      9.  Block opponent's two-in-a-row (early threat disruption)
-      10. Build our own two-in-a-row
-      11. Center column dominance
-      12. Prefer columns nearest center
-
-    Speed improvements over the original:
-      FIX 1 — Window coordinates are pre-computed once at module import
-               time and stored as numpy arrays; _all_windows() is never
-               called inside any hot path.
-      FIX 2 — All window scoring (threats, two-threats, parity) is done
-               with vectorised numpy operations instead of Python loops
-               over individual cells.
-      FIX 3 — Simulated moves use a direct board copy + incremental
-               drop/undo instead of a full Connect4Game.clone() for every
-               candidate column in every strategy.
-      FIX 4 — A single _analyse_board() pass computes every count needed
-               by strategies 4-10 in one sweep, so the window array is
-               read only once per candidate move instead of once per
-               strategy per candidate move.
-      FIX 5 — _immediate_win and _filter_game_ending_moves use the fast
-               incremental win checker so we never scan the whole board.
-      FIX 6 — Valid-move detection reads the top cell of each column
-               directly instead of iterating through rows.
-    """
-
     def __init__(self, player_id: int):
         super().__init__(player_id)
-        self.opponent_id = 2 if player_id == 1 else 1
 
     # ------------------------------------------------------------------ #
     #  Public API                                                          #
@@ -202,14 +156,6 @@ class RuleBasedAgent(AgentInterface):
 
     def _analyse_candidates(self, board: np.ndarray, rows: int, cols: int,
                              candidates: list[int]) -> dict:
-        """
-        For each candidate column, drop a piece, compute every metric
-        needed by rules 4-10 in one vectorised pass, then undo the drop.
-
-        Returns dict: col -> {my_threats, op_threats, my_parity_threats,
-                               my_open_three, op_open_three,
-                               my_twos, op_twos}
-        """
         target_parity = 0 if self.player_id == 1 else 1
         stats = {}
 
@@ -316,11 +262,6 @@ class RuleBasedAgent(AgentInterface):
                                  windows: np.ndarray,
                                  mask: np.ndarray,
                                  player: int) -> int:
-        """
-        Among windows selected by `mask`, count those whose single empty
-        cell sits on a surface that can actually be played (i.e. the cell
-        below it is occupied or it is on the bottom row).  FIX 1+2.
-        """
         if not mask.any():
             return 0
         count = 0
@@ -364,10 +305,6 @@ class RuleBasedAgent(AgentInterface):
 
     def _has_open_three(self, board: np.ndarray,
                          rows: int, cols: int, player: int) -> bool:
-        """
-        Detect a horizontal [empty, p, p, p, empty] pattern where both
-        flanking empty cells are immediately playable.  FIX 1 (no clone).
-        """
         for r in range(rows):
             for c in range(cols - 4):
                 w = board[r, c:c + 5]

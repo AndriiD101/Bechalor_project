@@ -66,7 +66,6 @@ class MCTSAgent(AgentInterface):
                  max_iterations: int = 20000,
                  timeout: float = 2.0):
         super().__init__(player_id)
-        self.opponent_id    = 2 if player_id == 1 else 1
         self.max_iterations = max_iterations
         # self.timeout        = timeout
         self._current_node: MCTSNode | None = None

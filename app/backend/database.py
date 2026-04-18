@@ -29,6 +29,7 @@ class GameRecord(Base):
     final_board = Column(JSON)
     move_history = Column(JSON)
     created_at = Column(DateTime, default=datetime.utcnow)
+    tournament_id = Column(String, nullable=True)
 
 
 def create_tables():

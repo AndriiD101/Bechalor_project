@@ -1,12 +1,18 @@
 import time
+import os
+import shutil
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
 from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
+from fastapi.responses import FileResponse
 
 from session_manager import create_session, get_session, delete_session
 from database import get_db, GameRecord
 from agent_factory import AGENT_REGISTRY
+from gif_generator import generate_connect4_gif
+
 
 router = APIRouter(prefix="/api", tags=["game"])
 
@@ -20,6 +26,7 @@ class NewGameRequest(BaseModel):
     player2_type: str
     player1_config: dict = {}
     player2_config: dict = {}
+    tournament_id: Optional[str] = None 
 
 
 class MoveRequest(BaseModel):
@@ -80,6 +87,7 @@ def _save_game(session, db: Session):
         duration_seconds=duration,
         final_board=session.board_as_list(),
         move_history=session.move_history,
+        tournament_id=getattr(session, 'tournament_id', None)
     )
     db.add(record)
     db.commit()
@@ -108,6 +116,9 @@ def new_game(req: NewGameRequest, db: Session = Depends(get_db)):
         raise HTTPException(400, "AvA requires both players to be agents")
 
     session = create_session(mode, p1, p2, req.player1_config, req.player2_config)
+
+    session.tournament_id = req.tournament_id
+
     state = session.to_state()
 
     # If player 1 is an agent, make its move immediately
@@ -234,6 +245,7 @@ def get_history(limit: int = 20, db: Session = Depends(get_db)):
             "total_moves": r.total_moves,
             "duration_seconds": r.duration_seconds,
             "created_at": r.created_at.isoformat(),
+            "tournament_id": r.tournament_id,
         }
         for r in records
     ]
@@ -257,8 +269,52 @@ def get_history_detail(record_id: int, db: Session = Depends(get_db)):
         "final_board": record.final_board,
         "move_history": record.move_history,
         "created_at": record.created_at.isoformat(),
+        "tournament_id": record.tournament_id,
     }
 
+@router.get("/history/{record_id}/gif")
+def get_game_gif(record_id: int, db: Session = Depends(get_db)):
+    """Generates and returns an animated GIF of a completed game."""
+    record = db.query(GameRecord).filter(GameRecord.id == record_id).first()
+    if not record:
+        raise HTTPException(404, "Record not found")
+    if not record.move_history:
+        raise HTTPException(400, "No moves recorded for this game")
+
+    # ➔ Helper to translate raw types into pretty names (e.g., "human" -> "Human", "random" -> "Random Agent")
+    def get_pretty_name(agent_type):
+        if agent_type == "human":
+            return "Human"
+        agent_info = AGENT_REGISTRY.get(agent_type)
+        if agent_info:
+            return agent_info.get("label", agent_type)
+        return agent_type
+
+    p1_label = get_pretty_name(record.player1_type)
+    p2_label = get_pretty_name(record.player2_type)
+
+    gif_dir = "saved_gifs"
+    filepath = os.path.join(gif_dir, f"game_{record_id}.gif")
+
+    # Pass the PRETTY labels into the GIF generator
+    if not os.path.exists(filepath):
+        generate_connect4_gif(
+            record.move_history, 
+            filepath, 
+            p1_name=p1_label, 
+            p2_name=p2_label
+        )
+
+    # ➔ Create a clean download name without spaces
+    safe_p1 = p1_label.replace(" ", "_")
+    safe_p2 = p2_label.replace(" ", "_")
+    download_name = f"{safe_p1}_vs_{safe_p2}_game_{record_id}.gif"
+
+    return FileResponse(
+        filepath, 
+        media_type="image/gif", 
+        filename=download_name
+    )
 
 @router.get("/stats")
 def get_stats(db: Session = Depends(get_db)):

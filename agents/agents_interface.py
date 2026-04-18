@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 class AgentInterface(ABC):
     def __init__(self, player_id):
         self.player_id = player_id
+        self.opponent_id = 2 if player_id == 1 else 1
         
     def get_valid_moves(self, game):
         valid_moves = []

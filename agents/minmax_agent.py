@@ -43,7 +43,6 @@ class MinMaxAgent(AgentInterface):
     def __init__(self, player_id: int, max_depth: int = 5):
         super().__init__(player_id)
         self.max_depth   = max_depth
-        self.opponent_id = 2 if player_id == 1 else 1
 
         # Evaluation lib — owns all scoring / terminal logic
         self._eval = Evaluation(player_id)

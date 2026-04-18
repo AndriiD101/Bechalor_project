@@ -1,6 +1,6 @@
 import torch
 from game import connect4
-from agents import mcts_agent, minmax_agent, rule_based_agent, random_agent, alfabetapruning_agent, mcts_agnet_old
+from agents import mcts_agent, minmax_agent, rule_based_agent, random_agent, alfabetapruning_agent
 
 from agents.reinforcement_agent import DQNAgent 
 
@@ -28,16 +28,15 @@ if __name__ == "__main__":
     # agent1 = load_dqn_agent(1, "checkpoints/dqn_final.pth")
     # agent1 = rule_based_agent.RuleBasedAgent(1)
     # agent1 = alfabetapruning_agent.AlphaBetaAgent(1, max_depth=6)
-    # agent1 = minmax_agent.MinMaxAgent(1, max_depth=8) 
-    agent1 = mcts_agent.MCTSAgent(1, max_iterations=20000)
+    agent1 = minmax_agent.MinMaxAgent(1, max_depth=4) 
+    # agent1 = mcts_agent.MCTSAgent(1, max_iterations=20000)
     
     # Гравець 2: Обирай супротивника (просто розкоментуй потрібного)
     # agent2 = random_agent.RandomAgent(2)
     # agent2 = rule_based_agent.RuleBasedAgent(2)
     # agent2 = minmax_agent.MinMaxAgent(2, max_depth=6) 
-    # agent2 = alfabetapruning_agent.AlphaBetaAgent(2, max_depth=8)
+    agent2 = alfabetapruning_agent.AlphaBetaAgent(2, max_depth=8)
     # agent2 = mcts_agent.MCTSAgent(2)
-    agent2 = mcts_agnet_old.MCTSAgent(2)
     
     print(f"Починаємо гру: Гравець 1 ({type(agent1).__name__}) VS Гравець 2 ({type(agent2).__name__})")
     game.print_board()

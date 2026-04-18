@@ -10,6 +10,14 @@ let hoveredCol = null;
 // Tournament state variables
 let cancelTourney = false;
 
+// Variables for GIF Generation
+let currentHistoryId = null;
+
+// Variables for Pagination
+let allHistoryGroups = [];
+let currentHistoryPage = 1;
+const historyItemsPerPage = 50;
+
 // ── Boot ───────────────────────────────────────────────────────────── //
 async function boot() {
   try {
@@ -175,7 +183,24 @@ function updatePlayerUI(prefix) {
   for (const [key, spec] of Object.entries(params)) {
     html += `<div class="param-row">`;
     html += `<label>${spec.label}</label>`;
-    if (spec.type === 'int' || spec.type === 'float') {
+    
+    // Custom logic to render a Drop Zone for model paths
+    if (key === 'model_path') {
+      html += `
+        <div class="drop-zone" id="${prefix}-drop"
+             ondragover="event.preventDefault(); this.classList.add('drag-over')"
+             ondragleave="this.classList.remove('drag-over')"
+             ondrop="handleModelDrop(event, '${prefix}')"
+             onclick="document.getElementById('${prefix}-file').click()">
+          <div style="font-size:1.2rem; margin-bottom:0.5rem">📥</div>
+          <div>Drag & Drop .pt model here<br><span style="font-size:0.55rem; opacity:0.7;">(or click to browse)</span></div>
+          <div class="model-status" id="${prefix}-status" style="color:var(--muted)">Default model loaded</div>
+          
+          <input type="hidden" id="${prefix}-${key}" value="${spec.default || ''}">
+          <input type="file" id="${prefix}-file" style="display:none" accept=".pt,.pth" onchange="handleModelSelect(this, '${prefix}')">
+        </div>`;
+    } 
+    else if (spec.type === 'int' || spec.type === 'float') {
       const step = spec.type === 'float' ? '0.01' : '1';
       html += `<div class="range-row">
         <input type="range" id="${prefix}-${key}"
@@ -687,6 +712,10 @@ function showEndModal(state) {
   }
 
   document.getElementById('modal-move-log').style.display = 'none';
+  
+  // Also pass the ID here so it's ready for GIF download right after a live game ends
+  currentHistoryId = state.game_id; // Store ID for GIF generator (if implemented for live games)
+  
   document.getElementById('end-modal').classList.add('open');
 }
 
@@ -747,60 +776,91 @@ async function loadHistory() {
   histEl.innerHTML = '<div class="empty-state"><div class="icon">◈</div>Loading...</div>';
 
   try {
-    const res = await fetch(`${API}/history?limit=200`);
+    // Increased the limit so we can paginate through a deep history
+    const res = await fetch(`${API}/history?limit=2000`);
     const records = await res.json();
     if (!records.length) {
       histEl.innerHTML = '<div class="empty-state"><div class="icon">◈</div>No games played yet</div>';
       return;
     }
 
-    // Load tournament metadata from sessionStorage
-    let tournamentMeta = [];
-    try {
-      tournamentMeta = JSON.parse(sessionStorage.getItem('tournaments') || '[]');
-    } catch(e) {}
+    // Group records and store them globally for pagination
+    allHistoryGroups = groupRecords(records);
+    currentHistoryPage = 1;
+    
+    // Render the first page
+    renderHistoryPage(currentHistoryPage);
 
-    // Group records: detect tournament sequences by matching tournament_id or
-    // heuristic (consecutive AVA games with same matchup in rapid succession).
-    // We use tournament_id from the record if available, otherwise fall back to
-    // grouping consecutive same-matchup AvA games played within a 5-minute window.
-    const groups = groupRecords(records);
-
-    let html = '';
-    let globalIdx = records.length;
-
-    for (const group of groups) {
-      if (group.type === 'tournament') {
-        html += renderTournamentFolder(group, globalIdx);
-        globalIdx -= group.games.length;
-      } else {
-        const r = group.game;
-        html += renderHistoryRow(r);
-        globalIdx--;
-      }
-    }
-
-    histEl.innerHTML = `
-      <table class="history-table" id="history-outer-table">
-        <thead>
-          <tr>
-            <th>#</th><th>MODE</th><th>PLAYER 1</th><th>PLAYER 2</th>
-            <th>WINNER</th><th>MOVES</th><th>DATE</th>
-          </tr>
-        </thead>
-        <tbody>${html}</tbody>
-      </table>
-    `;
   } catch(e) {
     histEl.innerHTML = '<div class="empty-state"><div class="icon">⚠</div>Error loading history</div>';
   }
 }
 
+function renderHistoryPage(page) {
+  currentHistoryPage = page;
+  const histEl = document.getElementById('history-content');
+
+  // Calculate slices for the current page
+  const totalPages = Math.ceil(allHistoryGroups.length / historyItemsPerPage);
+  const startIndex = (page - 1) * historyItemsPerPage;
+  const endIndex = startIndex + historyItemsPerPage;
+  const groupsToRender = allHistoryGroups.slice(startIndex, endIndex);
+
+  let html = '';
+
+  for (const group of groupsToRender) {
+    if (group.type === 'tournament') {
+      html += renderTournamentFolder(group);
+    } else {
+      html += renderHistoryRow(group.game);
+    }
+  }
+
+  // Build Pagination UI Controls
+  let paginationHtml = '';
+  if (totalPages > 1) {
+    const prevDisabled = page === 1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : '';
+    const nextDisabled = page === totalPages ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : '';
+    
+    paginationHtml = `
+      <div class="pagination-controls" style="display: flex; justify-content: center; align-items: center; margin-top: 1.5rem; gap: 1.5rem; padding-bottom: 1rem;">
+        <button class="btn-secondary" style="padding: 0.4rem 1rem; font-size: 0.7rem;" onclick="changeHistoryPage(${page - 1})" ${prevDisabled}>◀ PREV</button>
+        <span style="font-size: 0.8rem; color: var(--accent); font-weight: bold; letter-spacing: 1px;">PAGE ${page} OF ${totalPages}</span>
+        <button class="btn-secondary" style="padding: 0.4rem 1rem; font-size: 0.7rem;" onclick="changeHistoryPage(${page + 1})" ${nextDisabled}>NEXT ▶</button>
+      </div>
+    `;
+  }
+
+  histEl.innerHTML = `
+    <table class="history-table" id="history-outer-table">
+      <thead>
+        <tr>
+          <th>#</th><th>MODE</th><th>PLAYER 1</th><th>PLAYER 2</th>
+          <th>WINNER</th><th>MOVES</th><th>DATE</th>
+        </tr>
+      </thead>
+      <tbody>${html}</tbody>
+    </table>
+    ${paginationHtml}
+  `;
+}
+
+function changeHistoryPage(newPage) {
+  const totalPages = Math.ceil(allHistoryGroups.length / historyItemsPerPage);
+  if (newPage < 1 || newPage > totalPages) return;
+  
+  // Render the new page
+  renderHistoryPage(newPage);
+  
+  // Smooth scroll back to the top of the history list
+  document.querySelector('.app-content').scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 /**
- * Group history records. Consecutive AvA games with the same matchup
- * played within 5 minutes of each other are bundled as a tournament folder.
- * Minimum 3 games to form a folder.
+ * Group history records explicitly by tournament_id.
+ * Standard single games (even AvA) remain independent.
  */
+
 function groupRecords(records) {
   const groups = [];
   let i = 0;
@@ -808,34 +868,27 @@ function groupRecords(records) {
   while (i < records.length) {
     const r = records[i];
 
-    // Try to start a tournament group
-    if (r.mode === 'ava') {
+    // Explicitly check if the game has a tournament_id assigned from the tournament page
+    if (r.tournament_id) {
       let j = i + 1;
-      const p1 = r.player1_type, p2 = r.player2_type;
-      let prevTime = new Date(r.created_at).getTime();
+      const currentTourneyId = r.tournament_id;
 
+      // Group all consecutive games that share this exact tournament ID
       while (j < records.length) {
-        const nr = records[j];
-        const nTime = new Date(nr.created_at).getTime();
-        const timeDiff = Math.abs(nTime - prevTime);
-        if (nr.mode === 'ava' && nr.player1_type === p1 && nr.player2_type === p2 && timeDiff < 5 * 60 * 1000) {
-          prevTime = nTime;
+        if (records[j].tournament_id === currentTourneyId) {
           j++;
         } else {
           break;
         }
       }
 
-      const count = j - i;
-      if (count >= 3) {
-        groups.push({ type: 'tournament', games: records.slice(i, j) });
-        i = j;
-        continue;
-      }
+      groups.push({ type: 'tournament', games: records.slice(i, j) });
+      i = j; // Skip past all the games we just grouped
+    } else {
+      // Independent game (HvH, HvA, or single AvA)
+      groups.push({ type: 'single', game: r });
+      i++;
     }
-
-    groups.push({ type: 'single', game: r });
-    i++;
   }
 
   return groups;
@@ -959,8 +1012,15 @@ function winnerBadge(w) {
 
 async function showHistoryDetail(id) {
   try {
+    currentHistoryId = id; // Store the ID globally for the GIF downloader
+    
     const res = await fetch(`${API}/history/${id}`);
     const r = await res.json();
+
+    // ➔ NEW: Generate the dynamic filename using the pretty labels
+    const p1Name = agentLabel(r.player1_type).replace(/\s+/g, '_');
+    const p2Name = agentLabel(r.player2_type).replace(/\s+/g, '_');
+    currentGifFilename = `${p1Name}_vs_${p2Name}_game_${id}.gif`;
 
     document.getElementById('modal-title').textContent = `GAME #${r.id}`;
     document.getElementById('modal-subtitle').textContent =
@@ -994,8 +1054,89 @@ async function showHistoryDetail(id) {
       logEl.style.display = 'none';
     }
 
+    // Toggle the GIF download button visibility
+    const gifBtn = document.getElementById('btn-download-gif');
+    if (gifBtn) {
+      if (r.move_history && r.move_history.length > 0) {
+        gifBtn.style.display = 'inline-block';
+      } else {
+        gifBtn.style.display = 'none';
+      }
+    }
+
     document.getElementById('end-modal').classList.add('open');
-  } catch(e) {}
+  } catch(e) {
+    console.error("Error loading history detail:", e);
+  }
+}
+
+// ── File & Model Upload Functions ─────────────────────────────────── //
+
+async function handleModelDrop(e, prefix) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) await uploadModel(file, prefix);
+}
+
+async function handleModelSelect(input, prefix) {
+  const file = input.files[0];
+  if (file) await uploadModel(file, prefix);
+  input.value = ''; // Reset input so the same file can be uploaded again if needed
+}
+
+async function uploadModel(file, prefix) {
+  const statusEl = document.getElementById(`${prefix}-status`);
+  
+  if (!file.name.endsWith('.pt') && !file.name.endsWith('.pth')) {
+    statusEl.textContent = "⚠ Invalid format. Please use .pt or .pth";
+    statusEl.style.color = "var(--accent2)";
+    return;
+  }
+
+  statusEl.textContent = "Uploading...";
+  statusEl.style.color = "var(--muted)";
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const res = await fetch(`${API}/upload-model`, {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Upload failed");
+    }
+    
+    const data = await res.json();
+    
+    // Set the hidden input value to the new file path on the server
+    document.getElementById(`${prefix}-model_path`).value = data.file_path;
+    
+    statusEl.textContent = `✓ Loaded: ${file.name}`;
+    statusEl.style.color = "var(--accent)";
+  } catch (e) {
+    console.error(e);
+    statusEl.textContent = "⚠ Upload error";
+    statusEl.style.color = "var(--accent2)";
+  }
+}
+
+// ── Generate & Download GIF ───────────────────────────────────────── //
+
+function downloadCurrentGif() {
+  if (!currentHistoryId) return;
+  
+  // This will prompt the browser to download the file directly
+  const a = document.createElement('a');
+  a.href = `${API}/history/${currentHistoryId}/gif`;
+  a.download = `connect4_game_${currentHistoryId}.gif`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 boot();

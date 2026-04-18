@@ -43,8 +43,7 @@ class AlphaBetaAgent(AgentInterface):
     def __init__(self, player_id: int, max_depth: int = 5):
         super().__init__(player_id)
         self.max_depth   = max_depth
-        self.opponent_id = 2 if player_id == 1 else 1
-
+        
         self._eval    = Evaluation(player_id)
         self._windows: list | None = None
         self._tt: dict = {}
