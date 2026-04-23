@@ -1,6 +1,6 @@
 import torch
 from game import connect4
-from agents import mcts_agent, minmax_agent, rule_based_agent, random_agent, alfabetapruning_agent
+from agents import mcts_agent, minmax_agent, rule_based_agent, random_agent, alfabetapruning_agent, llm_agent, reinforcement_agent
 
 from agents.reinforcement_agent import DQNAgent 
 
@@ -27,16 +27,18 @@ if __name__ == "__main__":
     # Гравець 1: Наш навчений DQN
     # agent1 = load_dqn_agent(1, "checkpoints/dqn_final.pth")
     # agent1 = rule_based_agent.RuleBasedAgent(1)
-    # agent1 = alfabetapruning_agent.AlphaBetaAgent(1, max_depth=6)
-    agent1 = minmax_agent.MinMaxAgent(1, max_depth=4) 
-    # agent1 = mcts_agent.MCTSAgent(1, max_iterations=20000)
+    # agent1 = alfabetapruning_agent.AlphaBetaAgent(1, max_depth=3)
+    # agent1 = minmax_agent.MinMaxAgent(1, max_depth=4) 
+    # agent1 = reinforcement_agent.DQNAgent(1, model_path="/home/andriipc/Desktop/bachalor_project/checkpoints/best_model_rule_based.pt")
+    agent1 = mcts_agent.MCTSAgent(1, max_iterations=10000)
     
     # Гравець 2: Обирай супротивника (просто розкоментуй потрібного)
     # agent2 = random_agent.RandomAgent(2)
     # agent2 = rule_based_agent.RuleBasedAgent(2)
-    # agent2 = minmax_agent.MinMaxAgent(2, max_depth=6) 
-    agent2 = alfabetapruning_agent.AlphaBetaAgent(2, max_depth=8)
+    agent2 = minmax_agent.MinMaxAgent(2, max_depth=6) 
+    # agent2 = alfabetapruning_agent.AlphaBetaAgent(2, max_depth=8)
     # agent2 = mcts_agent.MCTSAgent(2)
+    # agent2 = llm_agent.LLMAgent(2, model="gemma3")  # Невчений DQN для тесту
     
     print(f"Починаємо гру: Гравець 1 ({type(agent1).__name__}) VS Гравець 2 ({type(agent2).__name__})")
     game.print_board()
