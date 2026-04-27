@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connect 4 Arena</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">◆ CONNECT 4 ◆ ARENA</div>
+    <div class="logo-sub">AI Battle Ground</div>
+    <nav>
+      <button class="nav-btn active" onclick="showView('setup')">⊕ NEW GAME</button>
+      <button class="nav-btn" onclick="showView('game')" id="nav-game" style="display:none">▶ GAME</button>
+      <button class="nav-btn" onclick="showView('tournament')">🏆 TOURNAMENT</button>
+      <button class="nav-btn" onclick="showView('history'); loadHistory()">◈ HISTORY</button>
+    </nav>
+  </header>
+
+  <main>
+    <div class="view active" id="view-setup">
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-title">◆ SELECT GAME MODE</div>
+        <div class="mode-grid">
+          <button class="mode-btn selected" id="mode-hvh" onclick="selectMode('hvh')">
+            <span class="mode-icon">👤👤</span>HUMAN<br>vs<br>HUMAN
+          </button>
+          <button class="mode-btn" id="mode-hva" onclick="selectMode('hva')">
+            <span class="mode-icon">👤🤖</span>HUMAN<br>vs<br>AGENT
+          </button>
+          <button class="mode-btn" id="mode-ava" onclick="selectMode('ava')">
+            <span class="mode-icon">🤖🤖</span>AGENT<br>vs<br>AGENT
+          </button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-title">◆ CONFIGURE PLAYERS</div>
+        <div class="player-setup">
+          <div class="player-block">
+            <div class="player-label"><span class="chip p1"></span>PLAYER 1</div>
+            <label>Type</label>
+            <select id="p1-type" onchange="updatePlayerUI('p1')"></select>
+            <div id="p1-params" class="agent-params"></div>
+          </div>
+          <div class="player-block">
+            <div class="player-label"><span class="chip p2"></span>PLAYER 2</div>
+            <label>Type</label>
+            <select id="p2-type" onchange="updatePlayerUI('p2')"></select>
+            <div id="p2-params" class="agent-params"></div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="startGame()">▶ START GAME</button>
+    </div>
+
+    <div class="view" id="view-tournament">
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-title">◆ TOURNAMENT SETUP</div>
+        <div class="player-setup" style="margin-bottom: 1.5rem;">
+          <div class="player-block">
+            <div class="player-label"><span class="chip p1"></span>AGENT 1</div>
+            <label>Type</label>
+            <select id="tourney-p1-type" onchange="updatePlayerUI('tourney-p1')"></select>
+            <div id="tourney-p1-params" class="agent-params"></div>
+          </div>
+          <div class="player-block">
+            <div class="player-label"><span class="chip p2"></span>AGENT 2</div>
+            <label>Type</label>
+            <select id="tourney-p2-type" onchange="updatePlayerUI('tourney-p2')"></select>
+            <div id="tourney-p2-params" class="agent-params"></div>
+          </div>
+        </div>
+        <div style="max-width: 400px; margin: 0 auto 1.5rem;">
+          <label style="text-align: center; color: var(--accent); font-family: var(--font-pixel); font-size: 0.6rem; margin-bottom: 0.8rem;">NUMBER OF GAMES</label>
+          <input type="number" id="tourney-games" value="10" min="1" max="1000" style="text-align:center; font-size: 1rem; padding: 0.8rem;">
+        </div>
+        <button class="btn-primary" id="btn-run-tourney" onclick="runTournament()">▶ START TOURNAMENT</button>
+        <button class="btn-danger" id="btn-stop-tourney" onclick="stopTourney()" style="display:none; width:100%; padding: 0.9rem 2rem; font-family: var(--font-pixel); font-size: 0.6rem;">✕ STOP TOURNAMENT</button>
+      </div>
+      <div class="card" id="tourney-results-card" style="display:none">
+        <div class="card-title">◆ TOURNAMENT RESULTS</div>
+        <div style="text-align:center; margin-bottom:1.5rem; font-family: var(--font-pixel); font-size:0.6rem; color:var(--muted); line-height: 1.5;" id="tourney-status">Preparing simulation...</div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-val" style="color:var(--p1)" id="tourney-res-p1">0</span>
+            <span class="stat-label" id="tourney-label-p1">P1 WINS</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-val" style="color:var(--p2)" id="tourney-res-p2">0</span>
+            <span class="stat-label" id="tourney-label-p2">P2 WINS</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-val" style="color:var(--muted)" id="tourney-res-draw">0</span>
+            <span class="stat-label">DRAWS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="view-game">
+      <div class="game-layout">
+        <div class="sidebar-left">
+          <div class="player-card" id="card-p1">
+            <div class="player-card-header">
+              <div class="player-chip-big p1"></div>
+              <div>
+                <div class="player-name" id="label-p1">PLAYER 1</div>
+                <div class="player-type-badge" id="type-p1">Human</div>
+              </div>
+            </div>
+            <div class="move-counter">Moves: <span id="moves-p1">0</span></div>
+            <div class="turn-indicator" id="turn-p1" style="display:none">YOUR TURN</div>
+            <div class="thinking" id="thinking-p1" style="margin-top: 0.5rem; justify-content: center;">
+              <div class="spinner"></div><span>Thinking...</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="game-center">
+          <div class="status-bar" id="status-bar">Select mode and start a game</div>
+          <div class="board-container">
+            <div class="col-arrows" id="col-arrows"></div>
+            <div class="board" id="board"></div>
+          </div>
+          <div class="game-actions" id="game-actions">
+            <button class="btn-secondary" onclick="setupNewGame()">◀ NEW GAME</button>
+            <button class="btn-danger" id="btn-abandon" onclick="abandonGame()">✕ ABANDON</button>
+          </div>
+          <div class="ava-controls" id="ava-controls" style="display:none">
+            <button class="btn-secondary" id="btn-step" onclick="stepAva()">⊳ STEP</button>
+            <button class="btn-secondary" id="btn-auto" onclick="toggleAutoPlay()">⏵ AUTO</button>
+            <div>
+              <span class="speed-label">Speed: </span>
+              <select id="ava-speed" style="width:auto; margin:0; padding:0.3rem 0.5rem; font-size:0.65rem">
+                <option value="1500">Slow</option>
+                <option value="700" selected>Normal</option>
+                <option value="200">Fast</option>
+                <option value="50">Turbo</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-right">
+          <div class="player-card" id="card-p2">
+            <div class="player-card-header">
+              <div class="player-chip-big p2"></div>
+              <div>
+                <div class="player-name" id="label-p2">PLAYER 2</div>
+                <div class="player-type-badge" id="type-p2">Human</div>
+              </div>
+            </div>
+            <div class="move-counter">Moves: <span id="moves-p2">0</span></div>
+            <div class="turn-indicator" id="turn-p2" style="display:none">YOUR TURN</div>
+            <div class="thinking" id="thinking-p2" style="margin-top: 0.5rem; justify-content: center;">
+              <div class="spinner"></div><span>Thinking...</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">◆ GAME INFO</div>
+            <div style="font-size:0.65rem; color:var(--muted); line-height:2">
+              Mode: <span id="info-mode" style="color:var(--text)">—</span><br>
+              P1 Moves: <span id="info-moves-p1" style="color:var(--text)">0</span><br>
+              P2 Moves: <span id="info-moves-p2" style="color:var(--text)">0</span><br>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="view-history">
+      <div id="stats-section" style="margin-bottom:1.5rem"></div>
+      <div class="card">
+        <div class="card-title">◆ GAME HISTORY</div>
+        <div id="history-content">
+          <div class="empty-state"><div class="icon">◈</div>Loading history...</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="end-modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">GAME OVER</div>
+    <div class="modal-subtitle" id="modal-subtitle"></div>
+    <div class="modal-board-mini" id="modal-board"></div>
+    <div class="move-log" id="modal-move-log" style="display:none; margin: 1.5rem auto; text-align: left; max-width: 280px; max-height: 200px; overflow-y: auto;"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="setupNewGame()">▶ NEW GAME</button>
+      <button class="btn-secondary" id="btn-download-gif" style="display:none" onclick="downloadCurrentGif()">🎥 GET GIF</button>
+      <button class="btn-secondary" onclick="closeModal(); showView('history'); loadHistory()">◈ HISTORY</button>
+    </div>
+  </div>
+</div>
+
+<script src="main.js"></script>
+</body>
+</html>

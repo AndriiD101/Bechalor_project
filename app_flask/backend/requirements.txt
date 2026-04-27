@@ -1,0 +1,8 @@
+flask==3.1.0
+flask-cors==5.0.0
+sqlalchemy==2.0.36
+numpy==1.26.4
+torch
+pillow==12.2.0
+requests==2.33.1
+python-dotenv==1.0.0
