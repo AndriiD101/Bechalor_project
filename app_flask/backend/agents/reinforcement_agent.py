@@ -120,6 +120,21 @@ class DQNAgent(AgentInterface):
 
     def load(self, path: str):
         state_dict = torch.load(path, map_location=self.device)
+        
+        # Auto-detect and handle Bayesian checkpoint (Bayes layer parameters with _mu, _sigma, _epsilon)
+        if any("_mu" in k or "_sigma" in k for k in state_dict.keys()):
+            print("[INFO] Bayesian checkpoint detected. Extracting mean weights...")
+            bayes_state_dict = {}
+            for key, value in state_dict.items():
+                if "_mu" in key:
+                    # Convert "fc.4.weight_mu" -> "fc.4.weight"
+                    new_key = key.replace("_mu", "")
+                    bayes_state_dict[new_key] = value
+                elif "_sigma" not in key and "_epsilon" not in key:
+                    # Keep non-Bayes keys as-is (e.g., batch norm running stats)
+                    bayes_state_dict[key] = value
+            state_dict = bayes_state_dict
+        
         # Auto-detect legacy architecture (BatchNorm keys present in checkpoint)
         if any("running_mean" in k for k in state_dict.keys()):
             print("[INFO] Legacy checkpoint detected (BatchNorm). Loading with Connect4NetLegacy.")

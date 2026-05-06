@@ -1,0 +1,65 @@
+========================================================
+  P1 : RuleBased
+  P2 : RuleBased
+  P1 params : {}
+  P2 params : {}
+  Games     : 50
+========================================================
+
+Game 01: Draw            (0.06s)
+Game 02: Draw            (0.06s)
+Game 03: Draw            (0.06s)
+Game 04: Draw            (0.06s)
+Game 05: Draw            (0.06s)
+Game 06: Draw            (0.06s)
+Game 07: Draw            (0.06s)
+Game 08: Draw            (0.06s)
+Game 09: Draw            (0.06s)
+Game 10: Draw            (0.06s)
+Game 11: Draw            (0.06s)
+Game 12: Draw            (0.06s)
+Game 13: Draw            (0.06s)
+Game 14: Draw            (0.06s)
+Game 15: Draw            (0.06s)
+Game 16: Draw            (0.06s)
+Game 17: Draw            (0.06s)
+Game 18: Draw            (0.06s)
+Game 19: Draw            (0.06s)
+Game 20: Draw            (0.06s)
+Game 21: Draw            (0.06s)
+Game 22: Draw            (0.06s)
+Game 23: Draw            (0.06s)
+Game 24: Draw            (0.06s)
+Game 25: Draw            (0.06s)
+Game 26: Draw            (0.06s)
+Game 27: Draw            (0.06s)
+Game 28: Draw            (0.06s)
+Game 29: Draw            (0.06s)
+Game 30: Draw            (0.06s)
+Game 31: Draw            (0.06s)
+Game 32: Draw            (0.06s)
+Game 33: Draw            (0.06s)
+Game 34: Draw            (0.06s)
+Game 35: Draw            (0.06s)
+Game 36: Draw            (0.06s)
+Game 37: Draw            (0.06s)
+Game 38: Draw            (0.06s)
+Game 39: Draw            (0.06s)
+Game 40: Draw            (0.06s)
+Game 41: Draw            (0.06s)
+Game 42: Draw            (0.06s)
+Game 43: Draw            (0.06s)
+Game 44: Draw            (0.06s)
+Game 45: Draw            (0.06s)
+Game 46: Draw            (0.06s)
+Game 47: Draw            (0.06s)
+Game 48: Draw            (0.06s)
+Game 49: Draw            (0.06s)
+Game 50: Draw            (0.06s)
+
+--------------------------------------------------------
+  P1 wins  : 0  (0%)
+  P2 wins  : 0  (0%)
+  Draws    : 50
+  Time     : 2.96s
+--------------------------------------------------------

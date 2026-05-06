@@ -1,0 +1,65 @@
+========================================================
+  P1 : DQN[model_path=checkpoints/dqn_final.pth]
+  P2 : MCTS[max_iterations=10000]
+  P1 params : {'model_path': 'checkpoints/dqn_final.pth'}
+  P2 params : {'max_iterations': 10000}
+  Games     : 50
+========================================================
+
+Game 01: Player_2        (68.91s)
+Game 02: Player_2        (43.23s)
+Game 03: Player_2        (61.46s)
+Game 04: Player_2        (59.41s)
+Game 05: Player_2        (58.88s)
+Game 06: Player_2        (82.64s)
+Game 07: Player_2        (59.22s)
+Game 08: Player_2        (63.73s)
+Game 09: Player_2        (72.46s)
+Game 10: Player_2        (53.03s)
+Game 11: Player_1        (67.98s)
+Game 12: Player_2        (57.56s)
+Game 13: Player_2        (58.01s)
+Game 14: Player_1        (34.34s)
+Game 15: Player_2        (54.55s)
+Game 16: Player_2        (49.18s)
+Game 17: Player_2        (72.05s)
+Game 18: Player_2        (68.15s)
+Game 19: Player_2        (53.08s)
+Game 20: Player_2        (86.84s)
+Game 21: Player_2        (49.30s)
+Game 22: Player_2        (57.65s)
+Game 23: Player_2        (57.19s)
+Game 24: Player_2        (55.22s)
+Game 25: Player_2        (64.76s)
+Game 26: Player_2        (48.67s)
+Game 27: Player_1        (58.61s)
+Game 28: Player_2        (60.66s)
+Game 29: Player_2        (60.46s)
+Game 30: Player_1        (56.48s)
+Game 31: Player_2        (67.10s)
+Game 32: Player_2        (57.10s)
+Game 33: Player_1        (71.09s)
+Game 34: Player_2        (70.42s)
+Game 35: Player_2        (69.06s)
+Game 36: Player_2        (60.54s)
+Game 37: Player_2        (51.29s)
+Game 38: Player_2        (54.60s)
+Game 39: Player_2        (53.91s)
+Game 40: Player_1        (41.63s)
+Game 41: Player_2        (57.43s)
+Game 42: Player_2        (62.85s)
+Game 43: Player_2        (67.02s)
+Game 44: Player_2        (62.38s)
+Game 45: Player_2        (56.43s)
+Game 46: Player_2        (68.28s)
+Game 47: Player_2        (59.26s)
+Game 48: Player_1        (66.78s)
+Game 49: Player_2        (57.58s)
+Game 50: Player_2        (59.89s)
+
+--------------------------------------------------------
+  P1 wins  : 7  (14%)
+  P2 wins  : 43  (86%)
+  Draws    : 0
+  Time     : 3008.36s
+--------------------------------------------------------

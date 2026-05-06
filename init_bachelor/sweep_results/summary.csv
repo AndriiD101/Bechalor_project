@@ -1,0 +1,325 @@
+p1_agent,p1_params,p1_label,p2_agent,p2_params,p2_label,games,p1_wins,p2_wins,draws,p1_winrate,p2_winrate,time_s,file
+Random,{},Random,Random,{},Random,50,27,23,0,0.54,0.46,0.01,sweep_results/Random_vs_Random.txt
+Random,{},Random,RuleBased,{},RuleBased,50,0,50,0,0.0,1.0,0.23,sweep_results/Random_vs_RuleBased.txt
+Random,{},Random,MinMax,{'max_depth': 1},MinMax[max_depth=1],50,1,49,0,0.02,0.98,0.16,sweep_results/Random_vs_MinMax[max_depth=1].txt
+Random,{},Random,MinMax,{'max_depth': 2},MinMax[max_depth=2],50,0,50,0,0.0,1.0,1.94,sweep_results/Random_vs_MinMax[max_depth=2].txt
+Random,{},Random,MinMax,{'max_depth': 3},MinMax[max_depth=3],50,0,50,0,0.0,1.0,7.51,sweep_results/Random_vs_MinMax[max_depth=3].txt
+Random,{},Random,MinMax,{'max_depth': 4},MinMax[max_depth=4],50,0,50,0,0.0,1.0,38.81,sweep_results/Random_vs_MinMax[max_depth=4].txt
+Random,{},Random,MinMax,{'max_depth': 5},MinMax[max_depth=5],50,0,50,0,0.0,1.0,143.62,sweep_results/Random_vs_MinMax[max_depth=5].txt
+Random,{},Random,MinMax,{'max_depth': 6},MinMax[max_depth=6],50,0,50,0,0.0,1.0,546.36,sweep_results/Random_vs_MinMax[max_depth=6].txt
+Random,{},Random,AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],50,0,50,0,0.0,1.0,0.16,sweep_results/Random_vs_AlphaBeta[max_depth=1].txt
+Random,{},Random,AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],50,0,50,0,0.0,1.0,0.76,sweep_results/Random_vs_AlphaBeta[max_depth=2].txt
+Random,{},Random,AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],50,0,50,0,0.0,1.0,2.58,sweep_results/Random_vs_AlphaBeta[max_depth=3].txt
+Random,{},Random,AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],50,0,50,0,0.0,1.0,5.71,sweep_results/Random_vs_AlphaBeta[max_depth=4].txt
+Random,{},Random,AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],50,0,50,0,0.0,1.0,17.84,sweep_results/Random_vs_AlphaBeta[max_depth=5].txt
+Random,{},Random,AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],50,0,50,0,0.0,1.0,42.58,sweep_results/Random_vs_AlphaBeta[max_depth=6].txt
+Random,{},Random,MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],50,4,46,0,0.08,0.92,524.19,sweep_results/Random_vs_MCTS[max_iterations=5000].txt
+Random,{},Random,MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],50,5,45,0,0.1,0.9,860.96,sweep_results/Random_vs_MCTS[max_iterations=10000].txt
+Random,{},Random,MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],50,6,44,0,0.12,0.88,1192.66,sweep_results/Random_vs_MCTS[max_iterations=15000].txt
+Random,{},Random,MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],50,3,47,0,0.06,0.94,1425.38,sweep_results/Random_vs_MCTS[max_iterations=20000].txt
+RuleBased,{},RuleBased,Random,{},Random,50,50,0,0,1.0,0.0,0.17,sweep_results/RuleBased_vs_Random.txt
+RuleBased,{},RuleBased,RuleBased,{},RuleBased,50,0,0,50,0.0,0.0,1.09,sweep_results/RuleBased_vs_RuleBased.txt
+RuleBased,{},RuleBased,MinMax,{'max_depth': 1},MinMax[max_depth=1],50,50,0,0,1.0,0.0,0.24,sweep_results/RuleBased_vs_MinMax[max_depth=1].txt
+RuleBased,{},RuleBased,MinMax,{'max_depth': 2},MinMax[max_depth=2],50,0,50,0,0.0,1.0,3.89,sweep_results/RuleBased_vs_MinMax[max_depth=2].txt
+RuleBased,{},RuleBased,MinMax,{'max_depth': 3},MinMax[max_depth=3],50,0,50,0,0.0,1.0,14.84,sweep_results/RuleBased_vs_MinMax[max_depth=3].txt
+RuleBased,{},RuleBased,MinMax,{'max_depth': 4},MinMax[max_depth=4],50,0,50,0,0.0,1.0,67.92,sweep_results/RuleBased_vs_MinMax[max_depth=4].txt
+RuleBased,{},RuleBased,MinMax,{'max_depth': 5},MinMax[max_depth=5],50,0,50,0,0.0,1.0,237.37,sweep_results/RuleBased_vs_MinMax[max_depth=5].txt
+RuleBased,{},RuleBased,MinMax,{'max_depth': 6},MinMax[max_depth=6],50,0,50,0,0.0,1.0,877.94,sweep_results/RuleBased_vs_MinMax[max_depth=6].txt
+RuleBased,{},RuleBased,AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],50,50,0,0,1.0,0.0,0.22,sweep_results/RuleBased_vs_AlphaBeta[max_depth=1].txt
+RuleBased,{},RuleBased,AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],50,0,50,0,0.0,1.0,1.93,sweep_results/RuleBased_vs_AlphaBeta[max_depth=2].txt
+RuleBased,{},RuleBased,AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],50,0,50,0,0.0,1.0,4.52,sweep_results/RuleBased_vs_AlphaBeta[max_depth=3].txt
+RuleBased,{},RuleBased,AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],50,0,50,0,0.0,1.0,12.72,sweep_results/RuleBased_vs_AlphaBeta[max_depth=4].txt
+RuleBased,{},RuleBased,AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],50,0,50,0,0.0,1.0,35.4,sweep_results/RuleBased_vs_AlphaBeta[max_depth=5].txt
+RuleBased,{},RuleBased,AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],50,0,50,0,0.0,1.0,110.78,sweep_results/RuleBased_vs_AlphaBeta[max_depth=6].txt
+RuleBased,{},RuleBased,MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],50,46,4,0,0.92,0.08,503.09,sweep_results/RuleBased_vs_MCTS[max_iterations=5000].txt
+RuleBased,{},RuleBased,MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],50,35,11,4,0.7,0.22,1025.05,sweep_results/RuleBased_vs_MCTS[max_iterations=10000].txt
+RuleBased,{},RuleBased,MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],50,40,9,1,0.8,0.18,1208.57,sweep_results/RuleBased_vs_MCTS[max_iterations=15000].txt
+RuleBased,{},RuleBased,MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],50,39,7,4,0.78,0.14,1355.19,sweep_results/RuleBased_vs_MCTS[max_iterations=20000].txt
+MinMax,{'max_depth': 1},MinMax[max_depth=1],Random,{},Random,50,50,0,0,1.0,0.0,0.15,sweep_results/MinMax[max_depth=1]_vs_Random.txt
+MinMax,{'max_depth': 1},MinMax[max_depth=1],RuleBased,{},RuleBased,50,0,50,0,0.0,1.0,0.88,sweep_results/MinMax[max_depth=1]_vs_RuleBased.txt
+MinMax,{'max_depth': 1},MinMax[max_depth=1],MinMax,{'max_depth': 1},MinMax[max_depth=1],50,50,0,0,1.0,0.0,0.22,sweep_results/MinMax[max_depth=1]_vs_MinMax[max_depth=1].txt
+MinMax,{'max_depth': 1},MinMax[max_depth=1],MinMax,{'max_depth': 2},MinMax[max_depth=2],50,50,0,0,1.0,0.0,0.66,sweep_results/MinMax[max_depth=1]_vs_MinMax[max_depth=2].txt
+MinMax,{'max_depth': 1},MinMax[max_depth=1],MinMax,{'max_depth': 3},MinMax[max_depth=3],50,0,50,0,0.0,1.0,10.32,sweep_results/MinMax[max_depth=1]_vs_MinMax[max_depth=3].txt
+MinMax,{'max_depth': 1},MinMax[max_depth=1],MinMax,{'max_depth': 4},MinMax[max_depth=4],50,0,50,0,0.0,1.0,53.23,sweep_results/MinMax[max_depth=1]_vs_MinMax[max_depth=4].txt
+MinMax,{'max_depth': 1},MinMax[max_depth=1],MinMax,{'max_depth': 5},MinMax[max_depth=5],50,0,50,0,0.0,1.0,203.71,sweep_results/MinMax[max_depth=1]_vs_MinMax[max_depth=5].txt
+MinMax,{'max_depth': 1},MinMax[max_depth=1],MinMax,{'max_depth': 6},MinMax[max_depth=6],50,0,50,0,0.0,1.0,707.29,sweep_results/MinMax[max_depth=1]_vs_MinMax[max_depth=6].txt
+MinMax,{'max_depth': 1},MinMax[max_depth=1],AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],50,50,0,0,1.0,0.0,0.21,sweep_results/MinMax[max_depth=1]_vs_AlphaBeta[max_depth=1].txt
+MinMax,{'max_depth': 1},MinMax[max_depth=1],AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],50,50,0,0,1.0,0.0,0.36,sweep_results/MinMax[max_depth=1]_vs_AlphaBeta[max_depth=2].txt
+MinMax,{'max_depth': 1},MinMax[max_depth=1],AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],50,0,50,0,0.0,1.0,3.84,sweep_results/MinMax[max_depth=1]_vs_AlphaBeta[max_depth=3].txt
+MinMax,{'max_depth': 1},MinMax[max_depth=1],AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],50,0,50,0,0.0,1.0,15.33,sweep_results/MinMax[max_depth=1]_vs_AlphaBeta[max_depth=4].txt
+MinMax,{'max_depth': 1},MinMax[max_depth=1],AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],50,0,50,0,0.0,1.0,39.3,sweep_results/MinMax[max_depth=1]_vs_AlphaBeta[max_depth=5].txt
+MinMax,{'max_depth': 1},MinMax[max_depth=1],AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],50,0,50,0,0.0,1.0,106.58,sweep_results/MinMax[max_depth=1]_vs_AlphaBeta[max_depth=6].txt
+MinMax,{'max_depth': 1},MinMax[max_depth=1],MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],50,47,3,0,0.94,0.06,588.49,sweep_results/MinMax[max_depth=1]_vs_MCTS[max_iterations=5000].txt
+MinMax,{'max_depth': 1},MinMax[max_depth=1],MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],50,44,5,1,0.88,0.1,962.91,sweep_results/MinMax[max_depth=1]_vs_MCTS[max_iterations=10000].txt
+MinMax,{'max_depth': 1},MinMax[max_depth=1],MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],50,43,7,0,0.86,0.14,1202.86,sweep_results/MinMax[max_depth=1]_vs_MCTS[max_iterations=15000].txt
+MinMax,{'max_depth': 1},MinMax[max_depth=1],MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],50,47,3,0,0.94,0.06,1546.32,sweep_results/MinMax[max_depth=1]_vs_MCTS[max_iterations=20000].txt
+MinMax,{'max_depth': 2},MinMax[max_depth=2],Random,{},Random,50,50,0,0,1.0,0.0,1.82,sweep_results/MinMax[max_depth=2]_vs_Random.txt
+MinMax,{'max_depth': 2},MinMax[max_depth=2],RuleBased,{},RuleBased,50,50,0,0,1.0,0.0,4.6,sweep_results/MinMax[max_depth=2]_vs_RuleBased.txt
+MinMax,{'max_depth': 2},MinMax[max_depth=2],MinMax,{'max_depth': 1},MinMax[max_depth=1],50,50,0,0,1.0,0.0,2.85,sweep_results/MinMax[max_depth=2]_vs_MinMax[max_depth=1].txt
+MinMax,{'max_depth': 2},MinMax[max_depth=2],MinMax,{'max_depth': 2},MinMax[max_depth=2],50,50,0,0,1.0,0.0,10.77,sweep_results/MinMax[max_depth=2]_vs_MinMax[max_depth=2].txt
+MinMax,{'max_depth': 2},MinMax[max_depth=2],MinMax,{'max_depth': 3},MinMax[max_depth=3],50,0,50,0,0.0,1.0,55.82,sweep_results/MinMax[max_depth=2]_vs_MinMax[max_depth=3].txt
+MinMax,{'max_depth': 2},MinMax[max_depth=2],MinMax,{'max_depth': 4},MinMax[max_depth=4],50,0,50,0,0.0,1.0,166.6,sweep_results/MinMax[max_depth=2]_vs_MinMax[max_depth=4].txt
+MinMax,{'max_depth': 2},MinMax[max_depth=2],MinMax,{'max_depth': 5},MinMax[max_depth=5],50,50,0,0,1.0,0.0,628.06,sweep_results/MinMax[max_depth=2]_vs_MinMax[max_depth=5].txt
+MinMax,{'max_depth': 2},MinMax[max_depth=2],MinMax,{'max_depth': 6},MinMax[max_depth=6],50,0,50,0,0.0,1.0,1808.45,sweep_results/MinMax[max_depth=2]_vs_MinMax[max_depth=6].txt
+MinMax,{'max_depth': 2},MinMax[max_depth=2],AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],50,50,0,0,1.0,0.0,3.67,sweep_results/MinMax[max_depth=2]_vs_AlphaBeta[max_depth=1].txt
+MinMax,{'max_depth': 2},MinMax[max_depth=2],AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],50,50,0,0,1.0,0.0,4.37,sweep_results/MinMax[max_depth=2]_vs_AlphaBeta[max_depth=2].txt
+MinMax,{'max_depth': 2},MinMax[max_depth=2],AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],50,0,50,0,0.0,1.0,18.91,sweep_results/MinMax[max_depth=2]_vs_AlphaBeta[max_depth=3].txt
+MinMax,{'max_depth': 2},MinMax[max_depth=2],AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],50,0,50,0,0.0,1.0,25.61,sweep_results/MinMax[max_depth=2]_vs_AlphaBeta[max_depth=4].txt
+MinMax,{'max_depth': 2},MinMax[max_depth=2],AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],50,50,0,0,1.0,0.0,64.4,sweep_results/MinMax[max_depth=2]_vs_AlphaBeta[max_depth=5].txt
+MinMax,{'max_depth': 2},MinMax[max_depth=2],AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],50,0,50,0,0.0,1.0,236.7,sweep_results/MinMax[max_depth=2]_vs_AlphaBeta[max_depth=6].txt
+MinMax,{'max_depth': 2},MinMax[max_depth=2],MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],50,48,2,0,0.96,0.04,1236.55,sweep_results/MinMax[max_depth=2]_vs_MCTS[max_iterations=5000].txt
+MinMax,{'max_depth': 2},MinMax[max_depth=2],MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],50,49,1,0,0.98,0.02,1972.62,sweep_results/MinMax[max_depth=2]_vs_MCTS[max_iterations=10000].txt
+MinMax,{'max_depth': 2},MinMax[max_depth=2],MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],50,46,4,0,0.92,0.08,2530.91,sweep_results/MinMax[max_depth=2]_vs_MCTS[max_iterations=15000].txt
+MinMax,{'max_depth': 2},MinMax[max_depth=2],MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],50,40,10,0,0.8,0.2,3237.75,sweep_results/MinMax[max_depth=2]_vs_MCTS[max_iterations=20000].txt
+MinMax,{'max_depth': 3},MinMax[max_depth=3],Random,{},Random,50,50,0,0,1.0,0.0,13.74,sweep_results/MinMax[max_depth=3]_vs_Random.txt
+MinMax,{'max_depth': 3},MinMax[max_depth=3],RuleBased,{},RuleBased,50,50,0,0,1.0,0.0,28.84,sweep_results/MinMax[max_depth=3]_vs_RuleBased.txt
+MinMax,{'max_depth': 3},MinMax[max_depth=3],MinMax,{'max_depth': 1},MinMax[max_depth=1],50,50,0,0,1.0,0.0,11.25,sweep_results/MinMax[max_depth=3]_vs_MinMax[max_depth=1].txt
+MinMax,{'max_depth': 3},MinMax[max_depth=3],MinMax,{'max_depth': 2},MinMax[max_depth=2],50,50,0,0,1.0,0.0,12.95,sweep_results/MinMax[max_depth=3]_vs_MinMax[max_depth=2].txt
+MinMax,{'max_depth': 3},MinMax[max_depth=3],MinMax,{'max_depth': 3},MinMax[max_depth=3],50,0,50,0,0.0,1.0,50.37,sweep_results/MinMax[max_depth=3]_vs_MinMax[max_depth=3].txt
+MinMax,{'max_depth': 3},MinMax[max_depth=3],MinMax,{'max_depth': 4},MinMax[max_depth=4],50,50,0,0,1.0,0.0,132.79,sweep_results/MinMax[max_depth=3]_vs_MinMax[max_depth=4].txt
+MinMax,{'max_depth': 3},MinMax[max_depth=3],MinMax,{'max_depth': 5},MinMax[max_depth=5],50,50,0,0,1.0,0.0,372.65,sweep_results/MinMax[max_depth=3]_vs_MinMax[max_depth=5].txt
+MinMax,{'max_depth': 3},MinMax[max_depth=3],MinMax,{'max_depth': 6},MinMax[max_depth=6],50,0,50,0,0.0,1.0,1297.54,sweep_results/MinMax[max_depth=3]_vs_MinMax[max_depth=6].txt
+MinMax,{'max_depth': 3},MinMax[max_depth=3],AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],50,50,0,0,1.0,0.0,11.41,sweep_results/MinMax[max_depth=3]_vs_AlphaBeta[max_depth=1].txt
+MinMax,{'max_depth': 3},MinMax[max_depth=3],AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],50,50,0,0,1.0,0.0,11.74,sweep_results/MinMax[max_depth=3]_vs_AlphaBeta[max_depth=2].txt
+MinMax,{'max_depth': 3},MinMax[max_depth=3],AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],50,0,50,0,0.0,1.0,35.9,sweep_results/MinMax[max_depth=3]_vs_AlphaBeta[max_depth=3].txt
+MinMax,{'max_depth': 3},MinMax[max_depth=3],AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],50,50,0,0,1.0,0.0,53.51,sweep_results/MinMax[max_depth=3]_vs_AlphaBeta[max_depth=4].txt
+MinMax,{'max_depth': 3},MinMax[max_depth=3],AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],50,50,0,0,1.0,0.0,90.57,sweep_results/MinMax[max_depth=3]_vs_AlphaBeta[max_depth=5].txt
+MinMax,{'max_depth': 3},MinMax[max_depth=3],AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],50,0,50,0,0.0,1.0,249.77,sweep_results/MinMax[max_depth=3]_vs_AlphaBeta[max_depth=6].txt
+MinMax,{'max_depth': 3},MinMax[max_depth=3],MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],50,44,6,0,0.88,0.12,1132.24,sweep_results/MinMax[max_depth=3]_vs_MCTS[max_iterations=5000].txt
+MinMax,{'max_depth': 3},MinMax[max_depth=3],MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],50,49,1,0,0.98,0.02,1892.25,sweep_results/MinMax[max_depth=3]_vs_MCTS[max_iterations=10000].txt
+MinMax,{'max_depth': 3},MinMax[max_depth=3],MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],50,45,5,0,0.9,0.1,2530.12,sweep_results/MinMax[max_depth=3]_vs_MCTS[max_iterations=15000].txt
+MinMax,{'max_depth': 3},MinMax[max_depth=3],MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],50,50,0,0,1.0,0.0,2958.7,sweep_results/MinMax[max_depth=3]_vs_MCTS[max_iterations=20000].txt
+MinMax,{'max_depth': 4},MinMax[max_depth=4],Random,{},Random,50,50,0,0,1.0,0.0,48.57,sweep_results/MinMax[max_depth=4]_vs_Random.txt
+MinMax,{'max_depth': 4},MinMax[max_depth=4],RuleBased,{},RuleBased,50,50,0,0,1.0,0.0,115.53,sweep_results/MinMax[max_depth=4]_vs_RuleBased.txt
+MinMax,{'max_depth': 4},MinMax[max_depth=4],MinMax,{'max_depth': 1},MinMax[max_depth=1],50,50,0,0,1.0,0.0,48.89,sweep_results/MinMax[max_depth=4]_vs_MinMax[max_depth=1].txt
+MinMax,{'max_depth': 4},MinMax[max_depth=4],MinMax,{'max_depth': 2},MinMax[max_depth=2],50,50,0,0,1.0,0.0,50.04,sweep_results/MinMax[max_depth=4]_vs_MinMax[max_depth=2].txt
+MinMax,{'max_depth': 4},MinMax[max_depth=4],MinMax,{'max_depth': 3},MinMax[max_depth=3],50,50,0,0,1.0,0.0,56.54,sweep_results/MinMax[max_depth=4]_vs_MinMax[max_depth=3].txt
+MinMax,{'max_depth': 4},MinMax[max_depth=4],MinMax,{'max_depth': 4},MinMax[max_depth=4],50,0,50,0,0.0,1.0,197.26,sweep_results/MinMax[max_depth=4]_vs_MinMax[max_depth=4].txt
+MinMax,{'max_depth': 4},MinMax[max_depth=4],MinMax,{'max_depth': 5},MinMax[max_depth=5],50,0,50,0,0.0,1.0,446.06,sweep_results/MinMax[max_depth=4]_vs_MinMax[max_depth=5].txt
+MinMax,{'max_depth': 4},MinMax[max_depth=4],MinMax,{'max_depth': 6},MinMax[max_depth=6],50,0,0,50,0.0,0.0,1469.46,sweep_results/MinMax[max_depth=4]_vs_MinMax[max_depth=6].txt
+MinMax,{'max_depth': 4},MinMax[max_depth=4],AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],50,50,0,0,1.0,0.0,48.8,sweep_results/MinMax[max_depth=4]_vs_AlphaBeta[max_depth=1].txt
+MinMax,{'max_depth': 4},MinMax[max_depth=4],AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],50,50,0,0,1.0,0.0,49.03,sweep_results/MinMax[max_depth=4]_vs_AlphaBeta[max_depth=2].txt
+MinMax,{'max_depth': 4},MinMax[max_depth=4],AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],50,50,0,0,1.0,0.0,50.83,sweep_results/MinMax[max_depth=4]_vs_AlphaBeta[max_depth=3].txt
+MinMax,{'max_depth': 4},MinMax[max_depth=4],AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],50,0,50,0,0.0,1.0,128.86,sweep_results/MinMax[max_depth=4]_vs_AlphaBeta[max_depth=4].txt
+MinMax,{'max_depth': 4},MinMax[max_depth=4],AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],50,0,50,0,0.0,1.0,182.46,sweep_results/MinMax[max_depth=4]_vs_AlphaBeta[max_depth=5].txt
+MinMax,{'max_depth': 4},MinMax[max_depth=4],AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],50,0,0,50,0.0,0.0,384.22,sweep_results/MinMax[max_depth=4]_vs_AlphaBeta[max_depth=6].txt
+MinMax,{'max_depth': 4},MinMax[max_depth=4],MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],50,42,8,0,0.84,0.16,1252.05,sweep_results/MinMax[max_depth=4]_vs_MCTS[max_iterations=5000].txt
+MinMax,{'max_depth': 4},MinMax[max_depth=4],MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],50,46,4,0,0.92,0.08,1989.29,sweep_results/MinMax[max_depth=4]_vs_MCTS[max_iterations=10000].txt
+MinMax,{'max_depth': 4},MinMax[max_depth=4],MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],50,49,1,0,0.98,0.02,2528.29,sweep_results/MinMax[max_depth=4]_vs_MCTS[max_iterations=15000].txt
+MinMax,{'max_depth': 4},MinMax[max_depth=4],MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],50,48,2,0,0.96,0.04,2888.72,sweep_results/MinMax[max_depth=4]_vs_MCTS[max_iterations=20000].txt
+MinMax,{'max_depth': 5},MinMax[max_depth=5],Random,{},Random,50,50,0,0,1.0,0.0,223.55,sweep_results/MinMax[max_depth=5]_vs_Random.txt
+MinMax,{'max_depth': 5},MinMax[max_depth=5],RuleBased,{},RuleBased,50,50,0,0,1.0,0.0,413.39,sweep_results/MinMax[max_depth=5]_vs_RuleBased.txt
+MinMax,{'max_depth': 5},MinMax[max_depth=5],MinMax,{'max_depth': 1},MinMax[max_depth=1],50,50,0,0,1.0,0.0,185.07,sweep_results/MinMax[max_depth=5]_vs_MinMax[max_depth=1].txt
+MinMax,{'max_depth': 5},MinMax[max_depth=5],MinMax,{'max_depth': 2},MinMax[max_depth=2],50,50,0,0,1.0,0.0,186.72,sweep_results/MinMax[max_depth=5]_vs_MinMax[max_depth=2].txt
+MinMax,{'max_depth': 5},MinMax[max_depth=5],MinMax,{'max_depth': 3},MinMax[max_depth=3],50,50,0,0,1.0,0.0,192.69,sweep_results/MinMax[max_depth=5]_vs_MinMax[max_depth=3].txt
+MinMax,{'max_depth': 5},MinMax[max_depth=5],MinMax,{'max_depth': 4},MinMax[max_depth=4],50,50,0,0,1.0,0.0,457.66,sweep_results/MinMax[max_depth=5]_vs_MinMax[max_depth=4].txt
+MinMax,{'max_depth': 5},MinMax[max_depth=5],MinMax,{'max_depth': 5},MinMax[max_depth=5],50,0,50,0,0.0,1.0,833.25,sweep_results/MinMax[max_depth=5]_vs_MinMax[max_depth=5].txt
+MinMax,{'max_depth': 5},MinMax[max_depth=5],MinMax,{'max_depth': 6},MinMax[max_depth=6],50,0,50,0,0.0,1.0,1836.08,sweep_results/MinMax[max_depth=5]_vs_MinMax[max_depth=6].txt
+MinMax,{'max_depth': 5},MinMax[max_depth=5],AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],50,50,0,0,1.0,0.0,185.35,sweep_results/MinMax[max_depth=5]_vs_AlphaBeta[max_depth=1].txt
+MinMax,{'max_depth': 5},MinMax[max_depth=5],AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],50,50,0,0,1.0,0.0,185.36,sweep_results/MinMax[max_depth=5]_vs_AlphaBeta[max_depth=2].txt
+MinMax,{'max_depth': 5},MinMax[max_depth=5],AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],50,50,0,0,1.0,0.0,187.18,sweep_results/MinMax[max_depth=5]_vs_AlphaBeta[max_depth=3].txt
+MinMax,{'max_depth': 5},MinMax[max_depth=5],AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],50,50,0,0,1.0,0.0,404.69,sweep_results/MinMax[max_depth=5]_vs_AlphaBeta[max_depth=4].txt
+MinMax,{'max_depth': 5},MinMax[max_depth=5],AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],50,0,50,0,0.0,1.0,549.47,sweep_results/MinMax[max_depth=5]_vs_AlphaBeta[max_depth=5].txt
+MinMax,{'max_depth': 5},MinMax[max_depth=5],AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],50,50,0,0,1.0,0.0,379.69,sweep_results/MinMax[max_depth=5]_vs_AlphaBeta[max_depth=6].txt
+MinMax,{'max_depth': 5},MinMax[max_depth=5],MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],50,47,3,0,0.94,0.06,613.59,sweep_results/MinMax[max_depth=5]_vs_MCTS[max_iterations=5000].txt
+MinMax,{'max_depth': 5},MinMax[max_depth=5],MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],50,49,1,0,0.98,0.02,899.64,sweep_results/MinMax[max_depth=5]_vs_MCTS[max_iterations=10000].txt
+MinMax,{'max_depth': 5},MinMax[max_depth=5],MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],50,49,1,0,0.98,0.02,1133.43,sweep_results/MinMax[max_depth=5]_vs_MCTS[max_iterations=15000].txt
+MinMax,{'max_depth': 5},MinMax[max_depth=5],MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],50,50,0,0,1.0,0.0,1325.8,sweep_results/MinMax[max_depth=5]_vs_MCTS[max_iterations=20000].txt
+MinMax,{'max_depth': 6},MinMax[max_depth=6],Random,{},Random,50,50,0,0,1.0,0.0,449.62,sweep_results/MinMax[max_depth=6]_vs_Random.txt
+MinMax,{'max_depth': 6},MinMax[max_depth=6],RuleBased,{},RuleBased,50,50,0,0,1.0,0.0,888.67,sweep_results/MinMax[max_depth=6]_vs_RuleBased.txt
+MinMax,{'max_depth': 6},MinMax[max_depth=6],MinMax,{'max_depth': 1},MinMax[max_depth=1],50,50,0,0,1.0,0.0,407.84,sweep_results/MinMax[max_depth=6]_vs_MinMax[max_depth=1].txt
+MinMax,{'max_depth': 6},MinMax[max_depth=6],MinMax,{'max_depth': 2},MinMax[max_depth=2],50,50,0,0,1.0,0.0,414.7,sweep_results/MinMax[max_depth=6]_vs_MinMax[max_depth=2].txt
+MinMax,{'max_depth': 6},MinMax[max_depth=6],MinMax,{'max_depth': 3},MinMax[max_depth=3],50,50,0,0,1.0,0.0,415.38,sweep_results/MinMax[max_depth=6]_vs_MinMax[max_depth=3].txt
+MinMax,{'max_depth': 6},MinMax[max_depth=6],MinMax,{'max_depth': 4},MinMax[max_depth=4],50,50,0,0,1.0,0.0,859.19,sweep_results/MinMax[max_depth=6]_vs_MinMax[max_depth=4].txt
+MinMax,{'max_depth': 6},MinMax[max_depth=6],MinMax,{'max_depth': 5},MinMax[max_depth=5],50,0,50,0,0.0,1.0,1135.57,sweep_results/MinMax[max_depth=6]_vs_MinMax[max_depth=5].txt
+MinMax,{'max_depth': 6},MinMax[max_depth=6],MinMax,{'max_depth': 6},MinMax[max_depth=6],50,50,0,0,1.0,0.0,1699.97,sweep_results/MinMax[max_depth=6]_vs_MinMax[max_depth=6].txt
+MinMax,{'max_depth': 6},MinMax[max_depth=6],AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],50,50,0,0,1.0,0.0,417.15,sweep_results/MinMax[max_depth=6]_vs_AlphaBeta[max_depth=1].txt
+MinMax,{'max_depth': 6},MinMax[max_depth=6],AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],50,50,0,0,1.0,0.0,417.1,sweep_results/MinMax[max_depth=6]_vs_AlphaBeta[max_depth=2].txt
+MinMax,{'max_depth': 6},MinMax[max_depth=6],AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],50,50,0,0,1.0,0.0,415.32,sweep_results/MinMax[max_depth=6]_vs_AlphaBeta[max_depth=3].txt
+MinMax,{'max_depth': 6},MinMax[max_depth=6],AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],50,50,0,0,1.0,0.0,850.3,sweep_results/MinMax[max_depth=6]_vs_AlphaBeta[max_depth=4].txt
+MinMax,{'max_depth': 6},MinMax[max_depth=6],AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],50,0,50,0,0.0,1.0,957.02,sweep_results/MinMax[max_depth=6]_vs_AlphaBeta[max_depth=5].txt
+MinMax,{'max_depth': 6},MinMax[max_depth=6],AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],50,50,0,0,1.0,0.0,1039.52,sweep_results/MinMax[max_depth=6]_vs_AlphaBeta[max_depth=6].txt
+MinMax,{'max_depth': 6},MinMax[max_depth=6],MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],50,48,2,0,0.96,0.04,1343.05,sweep_results/MinMax[max_depth=6]_vs_MCTS[max_iterations=5000].txt
+MinMax,{'max_depth': 6},MinMax[max_depth=6],MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],50,49,1,0,0.98,0.02,1716.09,sweep_results/MinMax[max_depth=6]_vs_MCTS[max_iterations=10000].txt
+MinMax,{'max_depth': 6},MinMax[max_depth=6],MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],50,48,2,0,0.96,0.04,2054.73,sweep_results/MinMax[max_depth=6]_vs_MCTS[max_iterations=15000].txt
+MinMax,{'max_depth': 6},MinMax[max_depth=6],MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],50,49,1,0,0.98,0.02,2246.15,sweep_results/MinMax[max_depth=6]_vs_MCTS[max_iterations=20000].txt
+AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],Random,{},Random,50,50,0,0,1.0,0.0,0.15,sweep_results/AlphaBeta[max_depth=1]_vs_Random.txt
+AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],RuleBased,{},RuleBased,50,0,50,0,0.0,1.0,0.74,sweep_results/AlphaBeta[max_depth=1]_vs_RuleBased.txt
+AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],MinMax,{'max_depth': 1},MinMax[max_depth=1],50,50,0,0,1.0,0.0,0.19,sweep_results/AlphaBeta[max_depth=1]_vs_MinMax[max_depth=1].txt
+AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],MinMax,{'max_depth': 2},MinMax[max_depth=2],50,50,0,0,1.0,0.0,0.59,sweep_results/AlphaBeta[max_depth=1]_vs_MinMax[max_depth=2].txt
+AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],MinMax,{'max_depth': 3},MinMax[max_depth=3],50,0,50,0,0.0,1.0,9.52,sweep_results/AlphaBeta[max_depth=1]_vs_MinMax[max_depth=3].txt
+AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],MinMax,{'max_depth': 4},MinMax[max_depth=4],50,0,50,0,0.0,1.0,47.03,sweep_results/AlphaBeta[max_depth=1]_vs_MinMax[max_depth=4].txt
+AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],MinMax,{'max_depth': 5},MinMax[max_depth=5],50,0,50,0,0.0,1.0,175.26,sweep_results/AlphaBeta[max_depth=1]_vs_MinMax[max_depth=5].txt
+AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],MinMax,{'max_depth': 6},MinMax[max_depth=6],50,0,50,0,0.0,1.0,616.0,sweep_results/AlphaBeta[max_depth=1]_vs_MinMax[max_depth=6].txt
+AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],50,50,0,0,1.0,0.0,0.18,sweep_results/AlphaBeta[max_depth=1]_vs_AlphaBeta[max_depth=1].txt
+AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],50,50,0,0,1.0,0.0,0.35,sweep_results/AlphaBeta[max_depth=1]_vs_AlphaBeta[max_depth=2].txt
+AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],50,0,50,0,0.0,1.0,3.27,sweep_results/AlphaBeta[max_depth=1]_vs_AlphaBeta[max_depth=3].txt
+AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],50,0,50,0,0.0,1.0,12.75,sweep_results/AlphaBeta[max_depth=1]_vs_AlphaBeta[max_depth=4].txt
+AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],50,0,50,0,0.0,1.0,34.42,sweep_results/AlphaBeta[max_depth=1]_vs_AlphaBeta[max_depth=5].txt
+AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],50,0,50,0,0.0,1.0,94.44,sweep_results/AlphaBeta[max_depth=1]_vs_AlphaBeta[max_depth=6].txt
+AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],50,41,9,0,0.82,0.18,554.8,sweep_results/AlphaBeta[max_depth=1]_vs_MCTS[max_iterations=5000].txt
+AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],50,43,7,0,0.86,0.14,914.22,sweep_results/AlphaBeta[max_depth=1]_vs_MCTS[max_iterations=10000].txt
+AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],50,45,5,0,0.9,0.1,1355.91,sweep_results/AlphaBeta[max_depth=1]_vs_MCTS[max_iterations=15000].txt
+AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],50,48,1,1,0.96,0.02,1594.53,sweep_results/AlphaBeta[max_depth=1]_vs_MCTS[max_iterations=20000].txt
+AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],Random,{},Random,50,50,0,0,1.0,0.0,0.82,sweep_results/AlphaBeta[max_depth=2]_vs_Random.txt
+AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],RuleBased,{},RuleBased,50,50,0,0,1.0,0.0,2.93,sweep_results/AlphaBeta[max_depth=2]_vs_RuleBased.txt
+AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],MinMax,{'max_depth': 1},MinMax[max_depth=1],50,50,0,0,1.0,0.0,1.07,sweep_results/AlphaBeta[max_depth=2]_vs_MinMax[max_depth=1].txt
+AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],MinMax,{'max_depth': 2},MinMax[max_depth=2],50,50,0,0,1.0,0.0,2.52,sweep_results/AlphaBeta[max_depth=2]_vs_MinMax[max_depth=2].txt
+AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],MinMax,{'max_depth': 3},MinMax[max_depth=3],50,0,50,0,0.0,1.0,17.49,sweep_results/AlphaBeta[max_depth=2]_vs_MinMax[max_depth=3].txt
+AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],MinMax,{'max_depth': 4},MinMax[max_depth=4],50,0,50,0,0.0,1.0,51.7,sweep_results/AlphaBeta[max_depth=2]_vs_MinMax[max_depth=4].txt
+AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],MinMax,{'max_depth': 5},MinMax[max_depth=5],50,50,0,0,1.0,0.0,200.72,sweep_results/AlphaBeta[max_depth=2]_vs_MinMax[max_depth=5].txt
+AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],MinMax,{'max_depth': 6},MinMax[max_depth=6],50,0,50,0,0.0,1.0,764.43,sweep_results/AlphaBeta[max_depth=2]_vs_MinMax[max_depth=6].txt
+AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],50,50,0,0,1.0,0.0,0.97,sweep_results/AlphaBeta[max_depth=2]_vs_AlphaBeta[max_depth=1].txt
+AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],50,50,0,0,1.0,0.0,1.49,sweep_results/AlphaBeta[max_depth=2]_vs_AlphaBeta[max_depth=2].txt
+AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],50,0,50,0,0.0,1.0,9.34,sweep_results/AlphaBeta[max_depth=2]_vs_AlphaBeta[max_depth=3].txt
+AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],50,0,50,0,0.0,1.0,12.92,sweep_results/AlphaBeta[max_depth=2]_vs_AlphaBeta[max_depth=4].txt
+AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],50,50,0,0,1.0,0.0,35.78,sweep_results/AlphaBeta[max_depth=2]_vs_AlphaBeta[max_depth=5].txt
+AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],50,0,50,0,0.0,1.0,132.63,sweep_results/AlphaBeta[max_depth=2]_vs_AlphaBeta[max_depth=6].txt
+AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],50,49,1,0,0.98,0.02,706.75,sweep_results/AlphaBeta[max_depth=2]_vs_MCTS[max_iterations=5000].txt
+AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],50,48,2,0,0.96,0.04,1155.68,sweep_results/AlphaBeta[max_depth=2]_vs_MCTS[max_iterations=10000].txt
+AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],50,46,4,0,0.92,0.08,1512.26,sweep_results/AlphaBeta[max_depth=2]_vs_MCTS[max_iterations=15000].txt
+AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],50,39,11,0,0.78,0.22,1819.3,sweep_results/AlphaBeta[max_depth=2]_vs_MCTS[max_iterations=20000].txt
+AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],Random,{},Random,50,50,0,0,1.0,0.0,1.96,sweep_results/AlphaBeta[max_depth=3]_vs_Random.txt
+AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],RuleBased,{},RuleBased,50,50,0,0,1.0,0.0,5.82,sweep_results/AlphaBeta[max_depth=3]_vs_RuleBased.txt
+AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],MinMax,{'max_depth': 1},MinMax[max_depth=1],50,50,0,0,1.0,0.0,2.32,sweep_results/AlphaBeta[max_depth=3]_vs_MinMax[max_depth=1].txt
+AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],MinMax,{'max_depth': 2},MinMax[max_depth=2],50,50,0,0,1.0,0.0,3.14,sweep_results/AlphaBeta[max_depth=3]_vs_MinMax[max_depth=2].txt
+AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],MinMax,{'max_depth': 3},MinMax[max_depth=3],50,0,50,0,0.0,1.0,18.65,sweep_results/AlphaBeta[max_depth=3]_vs_MinMax[max_depth=3].txt
+AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],MinMax,{'max_depth': 4},MinMax[max_depth=4],50,50,0,0,1.0,0.0,65.08,sweep_results/AlphaBeta[max_depth=3]_vs_MinMax[max_depth=4].txt
+AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],MinMax,{'max_depth': 5},MinMax[max_depth=5],50,50,0,0,1.0,0.0,198.35,sweep_results/AlphaBeta[max_depth=3]_vs_MinMax[max_depth=5].txt
+AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],MinMax,{'max_depth': 6},MinMax[max_depth=6],50,0,50,0,0.0,1.0,729.57,sweep_results/AlphaBeta[max_depth=3]_vs_MinMax[max_depth=6].txt
+AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],50,50,0,0,1.0,0.0,2.35,sweep_results/AlphaBeta[max_depth=3]_vs_AlphaBeta[max_depth=1].txt
+AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],50,50,0,0,1.0,0.0,2.62,sweep_results/AlphaBeta[max_depth=3]_vs_AlphaBeta[max_depth=2].txt
+AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],50,0,50,0,0.0,1.0,11.1,sweep_results/AlphaBeta[max_depth=3]_vs_AlphaBeta[max_depth=3].txt
+AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],50,50,0,0,1.0,0.0,22.97,sweep_results/AlphaBeta[max_depth=3]_vs_AlphaBeta[max_depth=4].txt
+AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],50,50,0,0,1.0,0.0,43.85,sweep_results/AlphaBeta[max_depth=3]_vs_AlphaBeta[max_depth=5].txt
+AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],50,0,50,0,0.0,1.0,133.73,sweep_results/AlphaBeta[max_depth=3]_vs_AlphaBeta[max_depth=6].txt
+AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],50,43,7,0,0.86,0.14,649.29,sweep_results/AlphaBeta[max_depth=3]_vs_MCTS[max_iterations=5000].txt
+AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],50,47,3,0,0.94,0.06,1038.99,sweep_results/AlphaBeta[max_depth=3]_vs_MCTS[max_iterations=10000].txt
+AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],50,47,3,0,0.94,0.06,1430.06,sweep_results/AlphaBeta[max_depth=3]_vs_MCTS[max_iterations=15000].txt
+AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],50,48,2,0,0.96,0.04,1685.57,sweep_results/AlphaBeta[max_depth=3]_vs_MCTS[max_iterations=20000].txt
+AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],Random,{},Random,50,50,0,0,1.0,0.0,4.77,sweep_results/AlphaBeta[max_depth=4]_vs_Random.txt
+AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],RuleBased,{},RuleBased,50,50,0,0,1.0,0.0,11.45,sweep_results/AlphaBeta[max_depth=4]_vs_RuleBased.txt
+AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],MinMax,{'max_depth': 1},MinMax[max_depth=1],50,50,0,0,1.0,0.0,5.59,sweep_results/AlphaBeta[max_depth=4]_vs_MinMax[max_depth=1].txt
+AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],MinMax,{'max_depth': 2},MinMax[max_depth=2],50,50,0,0,1.0,0.0,6.39,sweep_results/AlphaBeta[max_depth=4]_vs_MinMax[max_depth=2].txt
+AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],MinMax,{'max_depth': 3},MinMax[max_depth=3],50,50,0,0,1.0,0.0,10.16,sweep_results/AlphaBeta[max_depth=4]_vs_MinMax[max_depth=3].txt
+AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],MinMax,{'max_depth': 4},MinMax[max_depth=4],50,0,50,0,0.0,1.0,63.7,sweep_results/AlphaBeta[max_depth=4]_vs_MinMax[max_depth=4].txt
+AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],MinMax,{'max_depth': 5},MinMax[max_depth=5],50,0,50,0,0.0,1.0,213.69,sweep_results/AlphaBeta[max_depth=4]_vs_MinMax[max_depth=5].txt
+AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],MinMax,{'max_depth': 6},MinMax[max_depth=6],50,50,0,0,1.0,0.0,894.39,sweep_results/AlphaBeta[max_depth=4]_vs_MinMax[max_depth=6].txt
+AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],50,50,0,0,1.0,0.0,5.26,sweep_results/AlphaBeta[max_depth=4]_vs_AlphaBeta[max_depth=1].txt
+AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],50,50,0,0,1.0,0.0,5.64,sweep_results/AlphaBeta[max_depth=4]_vs_AlphaBeta[max_depth=2].txt
+AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],50,50,0,0,1.0,0.0,6.43,sweep_results/AlphaBeta[max_depth=4]_vs_AlphaBeta[max_depth=3].txt
+AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],50,0,50,0,0.0,1.0,22.75,sweep_results/AlphaBeta[max_depth=4]_vs_AlphaBeta[max_depth=4].txt
+AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],50,0,50,0,0.0,1.0,51.53,sweep_results/AlphaBeta[max_depth=4]_vs_AlphaBeta[max_depth=5].txt
+AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],50,50,0,0,1.0,0.0,164.57,sweep_results/AlphaBeta[max_depth=4]_vs_AlphaBeta[max_depth=6].txt
+AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],50,42,8,0,0.84,0.16,620.27,sweep_results/AlphaBeta[max_depth=4]_vs_MCTS[max_iterations=5000].txt
+AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],50,48,2,0,0.96,0.04,997.88,sweep_results/AlphaBeta[max_depth=4]_vs_MCTS[max_iterations=10000].txt
+AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],50,48,2,0,0.96,0.04,1468.13,sweep_results/AlphaBeta[max_depth=4]_vs_MCTS[max_iterations=15000].txt
+AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],50,50,0,0,1.0,0.0,1684.88,sweep_results/AlphaBeta[max_depth=4]_vs_MCTS[max_iterations=20000].txt
+AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],Random,{},Random,50,50,0,0,1.0,0.0,14.7,sweep_results/AlphaBeta[max_depth=5]_vs_Random.txt
+AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],RuleBased,{},RuleBased,50,50,0,0,1.0,0.0,39.13,sweep_results/AlphaBeta[max_depth=5]_vs_RuleBased.txt
+AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],MinMax,{'max_depth': 1},MinMax[max_depth=1],50,50,0,0,1.0,0.0,19.18,sweep_results/AlphaBeta[max_depth=5]_vs_MinMax[max_depth=1].txt
+AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],MinMax,{'max_depth': 2},MinMax[max_depth=2],50,50,0,0,1.0,0.0,20.06,sweep_results/AlphaBeta[max_depth=5]_vs_MinMax[max_depth=2].txt
+AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],MinMax,{'max_depth': 3},MinMax[max_depth=3],50,50,0,0,1.0,0.0,23.67,sweep_results/AlphaBeta[max_depth=5]_vs_MinMax[max_depth=3].txt
+AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],MinMax,{'max_depth': 4},MinMax[max_depth=4],50,50,0,0,1.0,0.0,85.83,sweep_results/AlphaBeta[max_depth=5]_vs_MinMax[max_depth=4].txt
+AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],MinMax,{'max_depth': 5},MinMax[max_depth=5],50,0,50,0,0.0,1.0,266.59,sweep_results/AlphaBeta[max_depth=5]_vs_MinMax[max_depth=5].txt
+AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],MinMax,{'max_depth': 6},MinMax[max_depth=6],50,0,50,0,0.0,1.0,1251.97,sweep_results/AlphaBeta[max_depth=5]_vs_MinMax[max_depth=6].txt
+AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],50,50,0,0,1.0,0.0,34.79,sweep_results/AlphaBeta[max_depth=5]_vs_AlphaBeta[max_depth=1].txt
+AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],50,50,0,0,1.0,0.0,35.36,sweep_results/AlphaBeta[max_depth=5]_vs_AlphaBeta[max_depth=2].txt
+AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],50,50,0,0,1.0,0.0,36.57,sweep_results/AlphaBeta[max_depth=5]_vs_AlphaBeta[max_depth=3].txt
+AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],50,50,0,0,1.0,0.0,100.76,sweep_results/AlphaBeta[max_depth=5]_vs_AlphaBeta[max_depth=4].txt
+AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],50,0,50,0,0.0,1.0,211.19,sweep_results/AlphaBeta[max_depth=5]_vs_AlphaBeta[max_depth=5].txt
+AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],50,0,50,0,0.0,1.0,374.97,sweep_results/AlphaBeta[max_depth=5]_vs_AlphaBeta[max_depth=6].txt
+AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],50,48,2,0,0.96,0.04,902.6,sweep_results/AlphaBeta[max_depth=5]_vs_MCTS[max_iterations=5000].txt
+AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],50,47,3,0,0.94,0.06,1406.55,sweep_results/AlphaBeta[max_depth=5]_vs_MCTS[max_iterations=10000].txt
+AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],50,47,3,0,0.94,0.06,1822.91,sweep_results/AlphaBeta[max_depth=5]_vs_MCTS[max_iterations=15000].txt
+AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],50,49,1,0,0.98,0.02,2222.03,sweep_results/AlphaBeta[max_depth=5]_vs_MCTS[max_iterations=20000].txt
+AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],Random,{},Random,50,50,0,0,1.0,0.0,53.66,sweep_results/AlphaBeta[max_depth=6]_vs_Random.txt
+AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],RuleBased,{},RuleBased,50,50,0,0,1.0,0.0,120.21,sweep_results/AlphaBeta[max_depth=6]_vs_RuleBased.txt
+AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],MinMax,{'max_depth': 1},MinMax[max_depth=1],50,50,0,0,1.0,0.0,77.83,sweep_results/AlphaBeta[max_depth=6]_vs_MinMax[max_depth=1].txt
+AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],MinMax,{'max_depth': 2},MinMax[max_depth=2],50,50,0,0,1.0,0.0,79.44,sweep_results/AlphaBeta[max_depth=6]_vs_MinMax[max_depth=2].txt
+AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],MinMax,{'max_depth': 3},MinMax[max_depth=3],50,50,0,0,1.0,0.0,85.75,sweep_results/AlphaBeta[max_depth=6]_vs_MinMax[max_depth=3].txt
+AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],MinMax,{'max_depth': 4},MinMax[max_depth=4],50,50,0,0,1.0,0.0,245.06,sweep_results/AlphaBeta[max_depth=6]_vs_MinMax[max_depth=4].txt
+AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],MinMax,{'max_depth': 5},MinMax[max_depth=5],50,0,50,0,0.0,1.0,712.82,sweep_results/AlphaBeta[max_depth=6]_vs_MinMax[max_depth=5].txt
+AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],MinMax,{'max_depth': 6},MinMax[max_depth=6],50,50,0,0,1.0,0.0,1685.54,sweep_results/AlphaBeta[max_depth=6]_vs_MinMax[max_depth=6].txt
+AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],50,50,0,0,1.0,0.0,77.7,sweep_results/AlphaBeta[max_depth=6]_vs_AlphaBeta[max_depth=1].txt
+AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],50,50,0,0,1.0,0.0,77.94,sweep_results/AlphaBeta[max_depth=6]_vs_AlphaBeta[max_depth=2].txt
+AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],50,50,0,0,1.0,0.0,79.78,sweep_results/AlphaBeta[max_depth=6]_vs_AlphaBeta[max_depth=3].txt
+AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],50,50,0,0,1.0,0.0,176.58,sweep_results/AlphaBeta[max_depth=6]_vs_AlphaBeta[max_depth=4].txt
+AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],50,0,50,0,0.0,1.0,392.38,sweep_results/AlphaBeta[max_depth=6]_vs_AlphaBeta[max_depth=5].txt
+AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],50,0,0,50,0.0,0.0,435.53,sweep_results/AlphaBeta[max_depth=6]_vs_AlphaBeta[max_depth=6].txt
+AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],50,46,4,0,0.92,0.08,1205.75,sweep_results/AlphaBeta[max_depth=6]_vs_MCTS[max_iterations=5000].txt
+AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],50,45,5,0,0.9,0.1,1924.43,sweep_results/AlphaBeta[max_depth=6]_vs_MCTS[max_iterations=10000].txt
+AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],50,48,2,0,0.96,0.04,2516.88,sweep_results/AlphaBeta[max_depth=6]_vs_MCTS[max_iterations=15000].txt
+AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],50,50,0,0,1.0,0.0,2759.6,sweep_results/AlphaBeta[max_depth=6]_vs_MCTS[max_iterations=20000].txt
+MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],Random,{},Random,50,48,2,0,0.96,0.04,909.96,sweep_results/MCTS[max_iterations=5000]_vs_Random.txt
+MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],RuleBased,{},RuleBased,50,10,35,5,0.2,0.7,1271.59,sweep_results/MCTS[max_iterations=5000]_vs_RuleBased.txt
+MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],MinMax,{'max_depth': 1},MinMax[max_depth=1],50,10,40,0,0.2,0.8,1015.94,sweep_results/MCTS[max_iterations=5000]_vs_MinMax[max_depth=1].txt
+MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],MinMax,{'max_depth': 2},MinMax[max_depth=2],50,19,30,1,0.38,0.6,1163.61,sweep_results/MCTS[max_iterations=5000]_vs_MinMax[max_depth=2].txt
+MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],MinMax,{'max_depth': 3},MinMax[max_depth=3],50,9,41,0,0.18,0.82,1081.1,sweep_results/MCTS[max_iterations=5000]_vs_MinMax[max_depth=3].txt
+MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],MinMax,{'max_depth': 4},MinMax[max_depth=4],50,0,50,0,0.0,1.0,1140.57,sweep_results/MCTS[max_iterations=5000]_vs_MinMax[max_depth=4].txt
+MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],MinMax,{'max_depth': 5},MinMax[max_depth=5],50,0,50,0,0.0,1.0,1215.27,sweep_results/MCTS[max_iterations=5000]_vs_MinMax[max_depth=5].txt
+MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],MinMax,{'max_depth': 6},MinMax[max_depth=6],50,2,47,1,0.04,0.94,2464.28,sweep_results/MCTS[max_iterations=5000]_vs_MinMax[max_depth=6].txt
+MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],50,5,45,0,0.1,0.9,982.9,sweep_results/MCTS[max_iterations=5000]_vs_AlphaBeta[max_depth=1].txt
+MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],50,18,31,1,0.36,0.62,913.08,sweep_results/MCTS[max_iterations=5000]_vs_AlphaBeta[max_depth=2].txt
+MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],50,6,44,0,0.12,0.88,533.56,sweep_results/MCTS[max_iterations=5000]_vs_AlphaBeta[max_depth=3].txt
+MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],50,2,48,0,0.04,0.96,513.9,sweep_results/MCTS[max_iterations=5000]_vs_AlphaBeta[max_depth=4].txt
+MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],50,1,49,0,0.02,0.98,501.27,sweep_results/MCTS[max_iterations=5000]_vs_AlphaBeta[max_depth=5].txt
+MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],50,5,44,1,0.1,0.88,659.25,sweep_results/MCTS[max_iterations=5000]_vs_AlphaBeta[max_depth=6].txt
+MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],50,24,23,3,0.48,0.46,1189.51,sweep_results/MCTS[max_iterations=5000]_vs_MCTS[max_iterations=5000].txt
+MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],50,21,25,4,0.42,0.5,1818.52,sweep_results/MCTS[max_iterations=5000]_vs_MCTS[max_iterations=10000].txt
+MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],50,26,21,3,0.52,0.42,2248.96,sweep_results/MCTS[max_iterations=5000]_vs_MCTS[max_iterations=15000].txt
+MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],50,23,23,4,0.46,0.46,2456.96,sweep_results/MCTS[max_iterations=5000]_vs_MCTS[max_iterations=20000].txt
+MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],Random,{},Random,50,49,1,0,0.98,0.02,754.68,sweep_results/MCTS[max_iterations=10000]_vs_Random.txt
+MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],RuleBased,{},RuleBased,50,10,33,7,0.2,0.66,1194.93,sweep_results/MCTS[max_iterations=10000]_vs_RuleBased.txt
+MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],MinMax,{'max_depth': 1},MinMax[max_depth=1],50,8,42,0,0.16,0.84,935.46,sweep_results/MCTS[max_iterations=10000]_vs_MinMax[max_depth=1].txt
+MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],MinMax,{'max_depth': 2},MinMax[max_depth=2],50,15,32,3,0.3,0.64,1091.93,sweep_results/MCTS[max_iterations=10000]_vs_MinMax[max_depth=2].txt
+MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],MinMax,{'max_depth': 3},MinMax[max_depth=3],50,10,40,0,0.2,0.8,965.93,sweep_results/MCTS[max_iterations=10000]_vs_MinMax[max_depth=3].txt
+MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],MinMax,{'max_depth': 4},MinMax[max_depth=4],50,0,50,0,0.0,1.0,948.04,sweep_results/MCTS[max_iterations=10000]_vs_MinMax[max_depth=4].txt
+MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],MinMax,{'max_depth': 5},MinMax[max_depth=5],50,1,49,0,0.02,0.98,1034.81,sweep_results/MCTS[max_iterations=10000]_vs_MinMax[max_depth=5].txt
+MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],MinMax,{'max_depth': 6},MinMax[max_depth=6],50,3,45,2,0.06,0.9,1688.07,sweep_results/MCTS[max_iterations=10000]_vs_MinMax[max_depth=6].txt
+MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],50,2,48,0,0.04,0.96,903.04,sweep_results/MCTS[max_iterations=10000]_vs_AlphaBeta[max_depth=1].txt
+MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],50,11,37,2,0.22,0.74,1083.85,sweep_results/MCTS[max_iterations=10000]_vs_AlphaBeta[max_depth=2].txt
+MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],50,2,48,0,0.04,0.96,923.97,sweep_results/MCTS[max_iterations=10000]_vs_AlphaBeta[max_depth=3].txt
+MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],50,0,50,0,0.0,1.0,922.6,sweep_results/MCTS[max_iterations=10000]_vs_AlphaBeta[max_depth=4].txt
+MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],50,0,50,0,0.0,1.0,922.53,sweep_results/MCTS[max_iterations=10000]_vs_AlphaBeta[max_depth=5].txt
+MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],50,6,44,0,0.12,0.88,1107.05,sweep_results/MCTS[max_iterations=10000]_vs_AlphaBeta[max_depth=6].txt
+MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],50,24,24,2,0.48,0.48,1760.93,sweep_results/MCTS[max_iterations=10000]_vs_MCTS[max_iterations=5000].txt
+MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],50,26,21,3,0.52,0.42,2240.17,sweep_results/MCTS[max_iterations=10000]_vs_MCTS[max_iterations=10000].txt
+MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],50,21,26,3,0.42,0.52,2665.05,sweep_results/MCTS[max_iterations=10000]_vs_MCTS[max_iterations=15000].txt
+MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],50,26,20,4,0.52,0.4,3175.07,sweep_results/MCTS[max_iterations=10000]_vs_MCTS[max_iterations=20000].txt
+MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],Random,{},Random,50,48,2,0,0.96,0.04,1144.43,sweep_results/MCTS[max_iterations=15000]_vs_Random.txt
+MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],RuleBased,{},RuleBased,50,14,33,3,0.28,0.66,1571.48,sweep_results/MCTS[max_iterations=15000]_vs_RuleBased.txt
+MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],MinMax,{'max_depth': 1},MinMax[max_depth=1],50,3,47,0,0.06,0.94,1297.56,sweep_results/MCTS[max_iterations=15000]_vs_MinMax[max_depth=1].txt
+MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],MinMax,{'max_depth': 2},MinMax[max_depth=2],50,8,42,0,0.16,0.84,1514.39,sweep_results/MCTS[max_iterations=15000]_vs_MinMax[max_depth=2].txt
+MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],MinMax,{'max_depth': 3},MinMax[max_depth=3],50,5,45,0,0.1,0.9,1343.97,sweep_results/MCTS[max_iterations=15000]_vs_MinMax[max_depth=3].txt
+MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],MinMax,{'max_depth': 4},MinMax[max_depth=4],50,0,50,0,0.0,1.0,1295.63,sweep_results/MCTS[max_iterations=15000]_vs_MinMax[max_depth=4].txt
+MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],MinMax,{'max_depth': 5},MinMax[max_depth=5],50,0,50,0,0.0,1.0,1359.68,sweep_results/MCTS[max_iterations=15000]_vs_MinMax[max_depth=5].txt
+MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],MinMax,{'max_depth': 6},MinMax[max_depth=6],50,4,46,0,0.08,0.92,2110.79,sweep_results/MCTS[max_iterations=15000]_vs_MinMax[max_depth=6].txt
+MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],50,5,45,0,0.1,0.9,1367.1,sweep_results/MCTS[max_iterations=15000]_vs_AlphaBeta[max_depth=1].txt
+MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],50,11,39,0,0.22,0.78,1614.93,sweep_results/MCTS[max_iterations=15000]_vs_AlphaBeta[max_depth=2].txt
+MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],50,8,42,0,0.16,0.84,1460.64,sweep_results/MCTS[max_iterations=15000]_vs_AlphaBeta[max_depth=3].txt
+MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],50,2,48,0,0.04,0.96,1266.13,sweep_results/MCTS[max_iterations=15000]_vs_AlphaBeta[max_depth=4].txt
+MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],50,1,49,0,0.02,0.98,1233.04,sweep_results/MCTS[max_iterations=15000]_vs_AlphaBeta[max_depth=5].txt
+MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],50,3,46,1,0.06,0.92,2382.31,sweep_results/MCTS[max_iterations=15000]_vs_AlphaBeta[max_depth=6].txt
+MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],50,25,23,2,0.5,0.46,4202.25,sweep_results/MCTS[max_iterations=15000]_vs_MCTS[max_iterations=5000].txt
+MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],50,22,24,4,0.44,0.48,4924.48,sweep_results/MCTS[max_iterations=15000]_vs_MCTS[max_iterations=10000].txt
+MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],50,27,19,4,0.54,0.38,5446.08,sweep_results/MCTS[max_iterations=15000]_vs_MCTS[max_iterations=15000].txt
+MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],50,21,26,3,0.42,0.52,6151.18,sweep_results/MCTS[max_iterations=15000]_vs_MCTS[max_iterations=20000].txt
+MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],Random,{},Random,50,47,3,0,0.94,0.06,2602.91,sweep_results/MCTS[max_iterations=20000]_vs_Random.txt
+MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],RuleBased,{},RuleBased,50,13,34,3,0.26,0.68,3540.56,sweep_results/MCTS[max_iterations=20000]_vs_RuleBased.txt
+MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],MinMax,{'max_depth': 1},MinMax[max_depth=1],50,7,43,0,0.14,0.86,2974.46,sweep_results/MCTS[max_iterations=20000]_vs_MinMax[max_depth=1].txt
+MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],MinMax,{'max_depth': 2},MinMax[max_depth=2],50,10,40,0,0.2,0.8,3362.41,sweep_results/MCTS[max_iterations=20000]_vs_MinMax[max_depth=2].txt
+MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],MinMax,{'max_depth': 3},MinMax[max_depth=3],50,11,39,0,0.22,0.78,1678.11,sweep_results/MCTS[max_iterations=20000]_vs_MinMax[max_depth=3].txt
+MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],MinMax,{'max_depth': 4},MinMax[max_depth=4],50,0,50,0,0.0,1.0,1576.39,sweep_results/MCTS[max_iterations=20000]_vs_MinMax[max_depth=4].txt
+MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],MinMax,{'max_depth': 5},MinMax[max_depth=5],50,0,50,0,0.0,1.0,1609.93,sweep_results/MCTS[max_iterations=20000]_vs_MinMax[max_depth=5].txt
+MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],MinMax,{'max_depth': 6},MinMax[max_depth=6],50,2,48,0,0.04,0.96,2452.3,sweep_results/MCTS[max_iterations=20000]_vs_MinMax[max_depth=6].txt
+MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],AlphaBeta,{'max_depth': 1},AlphaBeta[max_depth=1],50,5,45,0,0.1,0.9,1568.27,sweep_results/MCTS[max_iterations=20000]_vs_AlphaBeta[max_depth=1].txt
+MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],AlphaBeta,{'max_depth': 2},AlphaBeta[max_depth=2],50,5,45,0,0.1,0.9,1865.44,sweep_results/MCTS[max_iterations=20000]_vs_AlphaBeta[max_depth=2].txt
+MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],AlphaBeta,{'max_depth': 3},AlphaBeta[max_depth=3],50,6,44,0,0.12,0.88,1724.19,sweep_results/MCTS[max_iterations=20000]_vs_AlphaBeta[max_depth=3].txt
+MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],AlphaBeta,{'max_depth': 4},AlphaBeta[max_depth=4],50,3,47,0,0.06,0.94,1579.75,sweep_results/MCTS[max_iterations=20000]_vs_AlphaBeta[max_depth=4].txt
+MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],AlphaBeta,{'max_depth': 5},AlphaBeta[max_depth=5],50,1,49,0,0.02,0.98,1507.4,sweep_results/MCTS[max_iterations=20000]_vs_AlphaBeta[max_depth=5].txt
+MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],AlphaBeta,{'max_depth': 6},AlphaBeta[max_depth=6],50,6,44,0,0.12,0.88,1843.74,sweep_results/MCTS[max_iterations=20000]_vs_AlphaBeta[max_depth=6].txt
+MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],MCTS,{'max_iterations': 5000},MCTS[max_iterations=5000],50,19,30,1,0.38,0.6,2631.59,sweep_results/MCTS[max_iterations=20000]_vs_MCTS[max_iterations=5000].txt
+MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],MCTS,{'max_iterations': 10000},MCTS[max_iterations=10000],50,26,18,6,0.52,0.36,3301.27,sweep_results/MCTS[max_iterations=20000]_vs_MCTS[max_iterations=10000].txt
+MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],MCTS,{'max_iterations': 15000},MCTS[max_iterations=15000],50,21,23,6,0.42,0.46,3658.84,sweep_results/MCTS[max_iterations=20000]_vs_MCTS[max_iterations=15000].txt
+MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],MCTS,{'max_iterations': 20000},MCTS[max_iterations=20000],50,22,24,4,0.44,0.48,3813.64,sweep_results/MCTS[max_iterations=20000]_vs_MCTS[max_iterations=20000].txt

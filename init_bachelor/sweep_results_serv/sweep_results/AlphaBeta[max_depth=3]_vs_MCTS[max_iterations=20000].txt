@@ -1,0 +1,65 @@
+========================================================
+  P1 : AlphaBeta[max_depth=3]
+  P2 : MCTS[max_iterations=20000]
+  P1 params : {'max_depth': 3}
+  P2 params : {'max_iterations': 20000}
+  Games     : 50
+========================================================
+
+Game 01: Player_1        (110.52s)
+Game 02: Player_1        (127.27s)
+Game 03: Player_1        (110.61s)
+Game 04: Player_1        (117.44s)
+Game 05: Player_1        (101.33s)
+Game 06: Player_1        (103.00s)
+Game 07: Player_1        (110.88s)
+Game 08: Player_1        (122.04s)
+Game 09: Player_1        (107.49s)
+Game 10: Player_1        (74.76s)
+Game 11: Player_1        (103.88s)
+Game 12: Player_2        (69.22s)
+Game 13: Player_2        (93.64s)
+Game 14: Player_1        (109.34s)
+Game 15: Player_2        (113.40s)
+Game 16: Player_1        (124.39s)
+Game 17: Player_1        (108.44s)
+Game 18: Player_1        (66.72s)
+Game 19: Player_1        (106.62s)
+Game 20: Player_1        (86.68s)
+Game 21: Player_1        (55.19s)
+Game 22: Player_1        (108.42s)
+Game 23: Player_1        (107.28s)
+Game 24: Player_1        (98.51s)
+Game 25: Player_1        (100.64s)
+Game 26: Player_1        (56.47s)
+Game 27: Player_1        (112.88s)
+Game 28: Player_1        (72.94s)
+Game 29: Player_1        (83.71s)
+Game 30: Player_1        (87.68s)
+Game 31: Player_1        (110.49s)
+Game 32: Player_1        (112.20s)
+Game 33: Player_1        (100.79s)
+Game 34: Player_1        (81.49s)
+Game 35: Player_1        (107.32s)
+Game 36: Player_1        (103.84s)
+Game 37: Player_2        (107.57s)
+Game 38: Player_1        (109.85s)
+Game 39: Player_1        (90.19s)
+Game 40: Player_1        (115.61s)
+Game 41: Player_1        (95.36s)
+Game 42: Player_1        (48.31s)
+Game 43: Player_1        (79.73s)
+Game 44: Player_1        (104.12s)
+Game 45: Player_1        (79.77s)
+Game 46: Player_1        (81.28s)
+Game 47: Player_1        (88.55s)
+Game 48: Player_1        (105.43s)
+Game 49: Player_1        (93.08s)
+Game 50: Player_1        (71.06s)
+
+--------------------------------------------------------
+  P1 wins  : 46  (92%)
+  P2 wins  : 4  (8%)
+  Draws    : 0
+  Time     : 4837.44s
+--------------------------------------------------------

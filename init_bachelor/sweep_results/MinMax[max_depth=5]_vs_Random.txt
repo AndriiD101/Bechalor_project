@@ -1,0 +1,65 @@
+========================================================
+  P1 : MinMax[max_depth=5]
+  P2 : Random
+  P1 params : {'max_depth': 5}
+  P2 params : {}
+  Games     : 50
+========================================================
+
+Game 01: Player_1        (3.87s)
+Game 02: Player_1        (6.12s)
+Game 03: Player_1        (3.89s)
+Game 04: Player_1        (3.87s)
+Game 05: Player_1        (3.87s)
+Game 06: Player_1        (3.83s)
+Game 07: Player_1        (4.69s)
+Game 08: Player_1        (3.17s)
+Game 09: Player_1        (5.01s)
+Game 10: Player_1        (6.73s)
+Game 11: Player_1        (3.04s)
+Game 12: Player_1        (5.98s)
+Game 13: Player_1        (3.00s)
+Game 14: Player_1        (5.45s)
+Game 15: Player_1        (3.00s)
+Game 16: Player_1        (3.00s)
+Game 17: Player_1        (3.01s)
+Game 18: Player_1        (4.01s)
+Game 19: Player_1        (2.99s)
+Game 20: Player_1        (2.98s)
+Game 21: Player_1        (2.89s)
+Game 22: Player_1        (7.64s)
+Game 23: Player_1        (7.25s)
+Game 24: Player_1        (3.07s)
+Game 25: Player_1        (4.16s)
+Game 26: Player_1        (5.93s)
+Game 27: Player_1        (4.00s)
+Game 28: Player_1        (4.07s)
+Game 29: Player_1        (3.85s)
+Game 30: Player_1        (3.12s)
+Game 31: Player_1        (5.00s)
+Game 32: Player_1        (6.86s)
+Game 33: Player_1        (3.94s)
+Game 34: Player_1        (3.02s)
+Game 35: Player_1        (2.94s)
+Game 36: Player_1        (3.97s)
+Game 37: Player_1        (4.85s)
+Game 38: Player_1        (4.03s)
+Game 39: Player_1        (5.93s)
+Game 40: Player_1        (3.71s)
+Game 41: Player_1        (8.45s)
+Game 42: Player_1        (3.04s)
+Game 43: Player_1        (3.85s)
+Game 44: Player_1        (6.94s)
+Game 45: Player_1        (7.60s)
+Game 46: Player_1        (2.90s)
+Game 47: Player_1        (2.95s)
+Game 48: Player_1        (10.09s)
+Game 49: Player_1        (2.97s)
+Game 50: Player_1        (3.03s)
+
+--------------------------------------------------------
+  P1 wins  : 50  (100%)
+  P2 wins  : 0  (0%)
+  Draws    : 0
+  Time     : 223.55s
+--------------------------------------------------------
