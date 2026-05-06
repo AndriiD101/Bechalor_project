@@ -33,6 +33,7 @@ DEFAULTS = dict(
     target_sync=500,           # Only used if tau == 1.0
     eval_every=1_000,
     eval_games=200,
+    eval_eps=0.05,             # Fix: 5% randomness during eval to avoid deterministic loops
     min_replay=5_000,
     save_dir="checkpoints",
     resume=None,
@@ -132,7 +133,6 @@ class NoisyConnect4Net(Connect4Net):
 # Prioritized Experience Replay
 # ---------------------------------------------------------------------------
 class SumTree:
-    # (Remains unchanged from your original script)
     def __init__(self, capacity: int):
         self.capacity = capacity
         self.tree     = np.zeros(2 * capacity, dtype=np.float64)
@@ -236,7 +236,6 @@ class PrioritizedReplayBuffer:
 # N-step Return Buffer
 # ---------------------------------------------------------------------------
 class NStepBuffer:
-    # (Remains unchanged)
     def __init__(self, n: int, gamma: float):
         self.n     = n
         self.gamma = gamma
@@ -282,7 +281,7 @@ def obs_to_tensor(obs: np.ndarray, player_id: int, valid_moves: list, device) ->
     
     valid_layer = torch.zeros((6, 7), dtype=torch.float32, device=device)
     if valid_moves:
-        valid_layer[:, valid_moves] = 1.0
+        valid_layer[:, list(valid_moves)] = 1.0
 
     return torch.stack([p1_layer, p2_layer, valid_layer], dim=0)
 
@@ -305,7 +304,7 @@ def beta_schedule(frame: int, beta_start: float, beta_frames: int) -> float:
 
 
 # ---------------------------------------------------------------------------
-# Checkpoint & Random-state curriculum (Truncated for brevity, un-changed)
+# Random-state generator & Checkpoints
 # ---------------------------------------------------------------------------
 def _is_terminal(game: Connect4Game) -> bool:
     if game.check_draw(): return True
@@ -345,7 +344,6 @@ def current_rand_moves(episode: int, cfg: dict) -> int:
     return round(start + frac * (end - start))
 
 class CheckpointManager:
-    # (Remains unchanged)
     def __init__(self, save_dir: Path, model_name: str = "best_model.pt"):
         self.save_dir = save_dir
         self.model_name = model_name
@@ -403,9 +401,14 @@ class MetricsTracker:
         }
 
 # ---------------------------------------------------------------------------
-# Evaluation
+# Evaluation (Fixed to avoid determinism trap)
 # ---------------------------------------------------------------------------
-def evaluate(policy_net, snapshot_net, n_games: int, device) -> dict:
+def evaluate(policy_net, snapshot_net, n_games: int, device, eval_eps: float) -> dict:
+    """
+    Evaluate policy_net vs snapshot_net.
+    eval_eps forces a small amount of random play so agents don't 
+    play the exact same game loops repeatedly.
+    """
     wins = draws = losses = 0
 
     for swap in (False, True):
@@ -421,21 +424,29 @@ def evaluate(policy_net, snapshot_net, n_games: int, device) -> dict:
                     draws += 1
                     break
 
-                net     = policy_net if (player_id == 1) ^ swap else snapshot_net
-                state_t = obs_to_tensor(obs, player_id, valid, device)
-                with torch.no_grad():
-                    q_vals = net(state_t.unsqueeze(0)).squeeze(0)
-                action = pick_action(q_vals, valid)
+                net = policy_net if (player_id == 1) ^ swap else snapshot_net
+                
+                # Small chance to play randomly to explore different game tree branches
+                if random.random() < eval_eps:
+                    action = random.choice(valid)
+                else:
+                    state_t = obs_to_tensor(obs, player_id, valid, device)
+                    with torch.no_grad():
+                        q_vals = net(state_t.unsqueeze(0)).squeeze(0)
+                    action = pick_action(q_vals, valid)
 
                 obs, reward, terminated, truncated, info = env.step(action)
                 done = terminated or truncated
 
                 if done:
+                    # Is the player who just made the final move the policy_net?
+                    is_policy_net = (player_id == 1) ^ swap
+                    
                     if reward > 0:
-                        if (player_id == 1) ^ swap: wins += 1
+                        if is_policy_net: wins += 1
                         else: losses += 1
                     elif reward < 0:
-                        if (player_id == 1) ^ swap: losses += 1
+                        if is_policy_net: losses += 1
                         else: wins += 1
                     else:
                         draws += 1
@@ -457,7 +468,7 @@ def train(cfg: dict):
     device   = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
     
-    # Initialize AMP GradScaler
+    # Initialize AMP GradScaler for faster training
     scaler = torch.amp.GradScaler(device.type) if device.type == "cuda" else None
 
     save_dir = Path(cfg["save_dir"])
@@ -578,7 +589,7 @@ def train(cfg: dict):
                 last_action[player_id] = action
                 player_id = 3 - player_id
 
-            # ── Training step (Now controlled by train_freq) ──────────── #
+            # ── Training step (Controlled by train_freq) ──────────── #
             if len(replay) >= max(cfg["min_replay"], cfg["batch_size"]) and global_step % cfg["train_freq"] == 0:
                 beta = beta_schedule(global_step, cfg["per_beta_start"], cfg["per_beta_frames"])
                 states, actions, rewards, next_states, dones, idxs, weights = replay.sample(cfg["batch_size"], beta)
@@ -645,7 +656,7 @@ def train(cfg: dict):
             train_wr  = wins_tr / denom if denom else 0.0
 
             policy_net.eval()
-            stats = evaluate(policy_net, snapshot_net, cfg["eval_games"], device)
+            stats = evaluate(policy_net, snapshot_net, cfg["eval_games"], device, cfg["eval_eps"])
             policy_net.train()
 
             metrics_tracker.add(episode, stats, train_wr)
@@ -676,6 +687,31 @@ def train(cfg: dict):
         if episode % 1_000 == 0:
             periodic_path = save_dir / f"periodic_ep{episode:06d}.pt"
             torch.save(policy_net.state_dict(), periodic_path)
+
+    # Print final summary
+    print(f"\n{'='*70}")
+    print(f"Training complete!")
+    print(f"{'='*70}")
+    best_ckpt = checkpoint_mgr.get_best_checkpoint()
+    if best_ckpt:
+        print(f"\nBest model saved:")
+        print(f"  Step: {best_ckpt['step']:,}")
+        print(f"  Composite Score: {best_ckpt['score']:.4f}")
+        print(f"  Path: {best_ckpt['path'].name}")
+    print(f"{'='*70}")
+
+
+def parse_args():
+    p = argparse.ArgumentParser(
+        description="Connect4 DQN — Random-State Curriculum (Gymnasium)"
+    )
+    for k, v in DEFAULTS.items():
+        if isinstance(v, bool):
+            p.add_argument(f"--{k}", default=v, action=argparse.BooleanOptionalAction)
+        else:
+            p.add_argument(f"--{k}", default=v, type=str if v is None else type(v))
+    return vars(p.parse_args())
+
 
 if __name__ == "__main__":
     train(parse_args())
