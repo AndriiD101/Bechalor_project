@@ -14,7 +14,7 @@ class MCTSNode:
         self.visits: int = 0
         self.wins: float = 0.0       # accumulated reward from this node's perspective
 
-        # Columns not yet expanded into child nodes
+        # Columns not yet expanded into child nodes (use list for faster iteration)
         self.untried_moves: list[int] = game_state.get_valid_locations()
 
     # ------------------------------------------------------------------ #
@@ -36,24 +36,40 @@ class MCTSNode:
 
     def best_child(self, exploration_weight: float = math.sqrt(2)) -> "MCTSNode":
         log_parent = math.log(self.visits)
+        exploration_c_sqrt = exploration_weight * math.sqrt(log_parent)
 
-        def ucb1(child: MCTSNode) -> float:
+        best_child = self.children[0]
+        best_ucb = (best_child.wins / best_child.visits) + (exploration_c_sqrt / math.sqrt(best_child.visits))
+
+        for child in self.children[1:]:
             exploitation = child.wins / child.visits
-            exploration  = exploration_weight * math.sqrt(log_parent / child.visits)
-            return exploitation + exploration
+            exploration = exploration_c_sqrt / math.sqrt(child.visits)
+            ucb = exploitation + exploration
+            if ucb > best_ucb:
+                best_ucb = ucb
+                best_child = child
 
-        return max(self.children, key=ucb1)
+        return best_child
 
     def most_visited_child(self) -> "MCTSNode":
-        return max(self.children, key=lambda c: c.visits)
+        best_child = self.children[0]
+        max_visits = best_child.visits
+        for child in self.children[1:]:
+            if child.visits > max_visits:
+                max_visits = child.visits
+                best_child = child
+        return best_child
 
     # ------------------------------------------------------------------ #
     #  Expansion                                                           #
     # ------------------------------------------------------------------ #
 
     def expand(self) -> "MCTSNode":
-        move = random.choice(self.untried_moves)
-        self.untried_moves.remove(move)
+        # Use pop to avoid O(n) remove operation
+        move_idx = random.randint(0, len(self.untried_moves) - 1)
+        move = self.untried_moves[move_idx]
+        self.untried_moves[move_idx] = self.untried_moves[-1]
+        self.untried_moves.pop()
 
         new_state = self.game_state.clone()
         new_state.make_move(move)
@@ -117,9 +133,10 @@ class MCTSAgent(AgentInterface):
 
     def select_move(self, game) -> int:
         root = MCTSNode(game_state=game.clone())
+        exploration_c = self.exploration_c
 
         for _ in range(self.max_iterations):
-            node = self._select(root)
+            node = self._select(root, exploration_c)
 
             if not node.is_terminal():
                 node = node.expand()
@@ -134,28 +151,31 @@ class MCTSAgent(AgentInterface):
     #  MCTS phases                                                         #
     # ------------------------------------------------------------------ #
 
-    def _select(self, node: MCTSNode) -> MCTSNode:
+    def _select(self, node: MCTSNode, exploration_c: float = None) -> MCTSNode:
+        if exploration_c is None:
+            exploration_c = self.exploration_c
         while not node.is_terminal():
             if not node.is_fully_expanded():
                 return node          # stop here; let expand() handle it
-            node = node.best_child(self.exploration_c)
+            node = node.best_child(exploration_c)
         return node
 
     def _simulate(self, node: MCTSNode) -> float:
         sim_state = node.game_state.clone()
-        rollout_player = sim_state.current_player
+        player_id = self.player_id
 
         while True:
             # Check whether the last move caused a win
             last_player = 3 - sim_state.current_player   # player who just moved
             if sim_state.winning_move(last_player):
-                # Return result from the perspective of `rollout_player`
-                return 1.0 if last_player == self.player_id else 0.0
+                # Return result from the perspective of `player_id`
+                return 1.0 if last_player == player_id else 0.0
 
             if sim_state.check_draw():
                 return 0.5
 
             valid = sim_state.get_valid_locations()
-            move  = random.choice(valid)
+            # Use direct indexing instead of random.choice for faster access
+            move = valid[random.randint(0, len(valid) - 1)]
             sim_state.make_move(move)
             sim_state.switch_player()

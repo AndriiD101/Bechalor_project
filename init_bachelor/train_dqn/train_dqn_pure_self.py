@@ -1,131 +1,66 @@
+"""
+Self-Play DQN Training — Connect-4
+──────────────────────────────────
+Trains DQN purely against itself via periodic snapshot freezing.
+Implements the same algorithmic approach as the curriculum's self-play phase.
+
+Features:
+  • Prioritized Experience Replay (PER) with importance-sampling correction
+  • Reward shaping: bonuses for creating/blocking threats
+  • LR cosine-annealing scheduler
+  • Epsilon decay
+  • Periodic model snapshots for self-play opponents
+  • Evaluation against frozen snapshots
+  • Single unified checkpoint file with metrics history
+"""
+
 import argparse
 import collections
 import copy
-import math
 import random
 from pathlib import Path
 
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 
-from game.connect4_env import Connect4Env
-from agents.reinforcement_agent import Connect4Net  # Base architecture reused
+from game.connect4 import Connect4Game
+from agents.reinforcement_agent import Connect4Net
 
-# ---------------------------------------------------------------------------
-# Hyper-parameters
-# ---------------------------------------------------------------------------
+
 DEFAULTS = dict(
-    episodes=30_000,
+    episodes=50_000,
     batch_size=256,
-    replay_capacity=120_000,
-    lr=1e-4,
+    replay_capacity=150_000,
+    lr=3e-4,
     gamma=0.99,
-    # Epsilon retained as a fallback for the warmup phase only
     eps_start=1.0,
     eps_end=0.05,
     eps_decay=0.999_95,
-    eps_warmup=5_000,          # Steps before epsilon decay begins
     target_sync=500,
-    eval_every=1_000,
+    eval_every=500,
     eval_games=200,
+    eval_eps=0.02,
     min_replay=5_000,
+    per_alpha=0.6,          # PER: priority exponent
+    per_beta_start=0.4,     # PER: IS correction start
+    per_beta_end=1.0,       # PER: IS correction end
+    reward_threat=0.05,     # reward shaping bonus per threat
+    snapshot_every=10_000,   # create new opponent snapshot every N episodes
     save_dir="checkpoints",
     resume=None,
-    # PER
-    per_alpha=0.6,             # Priority exponent
-    per_beta_start=0.4,        # IS-weight exponent (annealed → 1.0)
-    per_beta_frames=100_000,
-    # N-step returns
-    n_steps=3,
-    # NoisyNet
-    noisy_sigma0=0.5,
-    use_noisy=True,
+    checkpoint_name="dqn_self_play.pt",
 )
 
 Transition = collections.namedtuple(
     "Transition", ["state", "action", "reward", "next_state", "done"]
 )
 
-# ---------------------------------------------------------------------------
-# NoisyLinear layer (replaces ε-greedy exploration with learned noise)
-# ---------------------------------------------------------------------------
-class NoisyLinear(nn.Module):
-    """Factorised Gaussian NoisyNet (Fortunato et al., 2017)."""
 
-    def __init__(self, in_features: int, out_features: int, sigma_init: float = 0.5):
-        super().__init__()
-        self.in_features = in_features
-        self.out_features = out_features
-
-        self.weight_mu = nn.Parameter(torch.empty(out_features, in_features))
-        self.weight_sigma = nn.Parameter(torch.full((out_features, in_features), sigma_init / math.sqrt(in_features)))
-        self.register_buffer("weight_epsilon", torch.zeros(out_features, in_features))
-
-        self.bias_mu = nn.Parameter(torch.empty(out_features))
-        self.bias_sigma = nn.Parameter(torch.full((out_features,), sigma_init / math.sqrt(out_features)))
-        self.register_buffer("bias_epsilon", torch.zeros(out_features))
-
-        self.reset_parameters()
-        self.sample_noise()
-
-    def reset_parameters(self):
-        mu_range = 1.0 / math.sqrt(self.in_features)
-        self.weight_mu.data.uniform_(-mu_range, mu_range)
-        self.bias_mu.data.uniform_(-mu_range, mu_range)
-
-    @staticmethod
-    def _f(x: torch.Tensor) -> torch.Tensor:
-        return x.sign() * x.abs().sqrt()
-
-    def sample_noise(self):
-        eps_i = self._f(torch.randn(self.in_features))
-        eps_j = self._f(torch.randn(self.out_features))
-        self.weight_epsilon.copy_(eps_j.outer(eps_i))
-        self.bias_epsilon.copy_(eps_j)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if self.training:
-            weight = self.weight_mu + self.weight_sigma * self.weight_epsilon
-            bias = self.bias_mu + self.bias_sigma * self.bias_epsilon
-        else:
-            weight = self.weight_mu
-            bias = self.bias_mu
-        return F.linear(x, weight, bias)
-
-
-# ---------------------------------------------------------------------------
-# Network wrapper that swaps the final linear layers for NoisyLinear
-# ---------------------------------------------------------------------------
-class NoisyConnect4Net(Connect4Net):
-    """Extends the base network with NoisyLinear heads for exploration."""
-
-    def __init__(self, sigma_init: float = 0.5):
-        super().__init__()
-        # Locate the last two Linear layers and replace them with NoisyLinear.
-        # This is robust to different architectures as long as they exist.
-        linear_layers = [(name, mod) for name, mod in self.named_modules()
-                         if isinstance(mod, nn.Linear)]
-        if len(linear_layers) < 2:
-            raise RuntimeError("Base network must have at least 2 Linear layers.")
-        for name, mod in linear_layers[-2:]:
-            parent_name, attr = name.rsplit(".", 1) if "." in name else ("", name)
-            parent = self if not parent_name else dict(self.named_modules())[parent_name]
-            setattr(parent, attr, NoisyLinear(mod.in_features, mod.out_features, sigma_init))
-
-    def sample_noise(self):
-        for mod in self.modules():
-            if isinstance(mod, NoisyLinear):
-                mod.sample_noise()
-
-
-# ---------------------------------------------------------------------------
-# Prioritized Experience Replay
-# ---------------------------------------------------------------------------
+# ─── PRIORITIZED REPLAY BUFFER ───────────────────────────────────────────
 class SumTree:
-    """Binary sum-tree for O(log n) priority sampling."""
+    """Binary sum-tree for O(log n) priority updates and sampling."""
 
     def __init__(self, capacity: int):
         self.capacity = capacity
@@ -141,12 +76,11 @@ class SumTree:
             self._propagate(parent, change)
 
     def _retrieve(self, idx: int, s: float) -> int:
-        left, right = 2 * idx + 1, 2 * idx + 2
+        left = 2 * idx + 1
+        right = left + 1
         if left >= len(self.tree):
             return idx
-        if s <= self.tree[left]:
-            return self._retrieve(left, s)
-        return self._retrieve(right, s - self.tree[left])
+        return self._retrieve(left, s) if s <= self.tree[left] else self._retrieve(right, s - self.tree[left])
 
     @property
     def total(self) -> float:
@@ -165,146 +99,89 @@ class SumTree:
         self._propagate(idx, change)
 
     def get(self, s: float):
+        # Clamp s so floating-point overshoot never walks past the last leaf
+        s = min(s, self.tree[0] - 1e-6)
         idx = self._retrieve(0, s)
-        # Clamp to the range of leaves that actually hold data.
-        # Leaf indices span [capacity-1, 2*capacity-2].
-        # data_idx = idx - (capacity-1), so max valid data_idx = size-1.
-        first_leaf = self.capacity - 1
-        last_valid_leaf = first_leaf + self.size - 1          # inclusive
-        idx = max(first_leaf, min(idx, last_valid_leaf))
-        data_idx = idx - first_leaf                           # always in [0, size-1]
+        # Ensure idx is within bounds of the tree array
+        idx = min(idx, len(self.tree) - 1)
+        data_idx = min(idx - self.capacity + 1, self.size - 1)
+        data_idx = max(data_idx, 0)
         return idx, float(self.tree[idx]), self.data[data_idx]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.size
 
 
 class PrioritizedReplayBuffer:
-    """Proportional PER with importance-sampling weights."""
+    """Prioritized Experience Replay with importance-sampling weights."""
 
-    def __init__(self, capacity: int, alpha: float = 0.6, epsilon: float = 1e-5):
-        self.tree = SumTree(capacity)
+    def __init__(self, capacity: int, alpha: float = 0.6):
         self.alpha = alpha
-        self.epsilon = epsilon
+        self.tree = SumTree(capacity)
         self.max_priority = 1.0
+        self.eps_priority = 1e-6
 
     def push(self, *args):
         self.tree.add(self.max_priority ** self.alpha, Transition(*args))
 
-    def sample(self, n: int, beta: float = 0.4):
-        batch, idxs, priorities = [], [], []
+    def sample(self, n: int, beta: float):
+        indices, priorities, transitions = [], [], []
         segment = self.tree.total / n
         for i in range(n):
-            s = random.uniform(segment * i, segment * (i + 1))
-            idx, priority, data = self.tree.get(s)
-            if data is None:
-                # Fallback: retry with a random valid sample
-                s = random.uniform(0, self.tree.total)
-                idx, priority, data = self.tree.get(s)
-            batch.append(data)
-            idxs.append(idx)
+            lo, hi = segment * i, segment * (i + 1)
+            s = random.uniform(lo, hi)
+            idx, priority, t = self.tree.get(s)
+            if t is None:          # guard against uninitialised slots
+                continue
+            indices.append(idx)
             priorities.append(priority)
+            transitions.append(t)
 
-        probs = np.array(priorities, dtype=np.float64) / self.tree.total
-        probs = np.clip(probs, 1e-10, None)
+        if not transitions:
+            return None
+
+        probs = np.array(priorities, dtype=np.float64) / (self.tree.total + 1e-9)
+        probs = np.clip(probs, 1e-9, None)  # Prevent zero probabilities
         weights = (len(self.tree) * probs) ** (-beta)
         weights /= weights.max()
-        weights = torch.tensor(weights, dtype=torch.float32)
 
-        s, a, r, ns, d = zip(*batch)
+        s, a, r, ns, d = zip(*transitions)
         return (
             torch.stack(s),
             torch.tensor(a, dtype=torch.long),
             torch.tensor(r, dtype=torch.float32),
             torch.stack(ns),
             torch.tensor(d, dtype=torch.float32),
-            idxs,
-            weights,
+            torch.tensor(weights, dtype=torch.float32),
+            indices,
         )
 
-    def update_priorities(self, idxs, td_errors):
-        for idx, err in zip(idxs, td_errors):
-            priority = (abs(float(err)) + self.epsilon) ** self.alpha
-            self.max_priority = max(self.max_priority, priority)
-            self.tree.update(idx, priority)
+    def update_priorities(self, indices: list, td_errors: np.ndarray):
+        for idx, err in zip(indices, td_errors):
+            p = (abs(err) + self.eps_priority) ** self.alpha
+            self.max_priority = max(self.max_priority, p)
+            self.tree.update(idx, p)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.tree)
 
 
-# ---------------------------------------------------------------------------
-# N-step Return Buffer
-# ---------------------------------------------------------------------------
-class NStepBuffer:
-    """Accumulates n-step transitions before pushing to the replay buffer."""
-
-    def __init__(self, n: int, gamma: float):
-        self.n = n
-        self.gamma = gamma
-        self.buf: collections.deque = collections.deque()
-
-    def push(self, state, action, reward, next_state, done):
-        self.buf.append(Transition(state, action, reward, next_state, done))
-        if len(self.buf) < self.n and not done:
-            return None
-
-        # Compute n-step discounted return
-        R = 0.0
-        for i, t in enumerate(self.buf):
-            R += (self.gamma ** i) * t.reward
-            if t.done:
-                break
-
-        first = self.buf[0]
-        last = self.buf[-1]
-
-        if done:
-            self.buf.clear()
-        else:
-            self.buf.popleft()
-
-        return Transition(first.state, first.action, R, last.next_state, last.done)
-
-    def flush(self):
-        """Return any remaining partial sequences at episode end."""
-        results = []
-        while self.buf:
-            R = sum((self.gamma ** i) * t.reward for i, t in enumerate(self.buf))
-            first, last = self.buf[0], self.buf[-1]
-            results.append(Transition(first.state, first.action, R, last.next_state, last.done))
-            self.buf.popleft()
-        return results
-
-
-# ---------------------------------------------------------------------------
-# Utility functions
-# ---------------------------------------------------------------------------
-def obs_to_tensor(obs: np.ndarray, player_id: int, device) -> torch.Tensor:
-    """
-    Convert Gymnasium observation (6x7 board) to 3-channel tensor.
-    Channels: [my_pieces, opponent_pieces, valid_moves]
-    Returns shape [3, 6, 7] (no batch dimension).
-    """
-    board = obs.astype(np.float32)
+# ─── STATE ENCODING ──────────────────────────────────────────────────────
+def board_to_tensor(board, player_id: int, valid_moves: list, device) -> torch.Tensor:
     board_f = np.flipud(board)
     opp_id = 2 if player_id == 1 else 1
-    
-    my_layer = (board_f == player_id).astype(np.float32)
-    opp_layer = (board_f == opp_id).astype(np.float32)
-    valid_layer = np.ones((6, 7), dtype=np.float32)  # All moves valid (env filters)
-    
-    state = np.stack([my_layer, opp_layer, valid_layer], axis=0)
+    valid_layer = np.zeros((6, 7), dtype=np.float32)
+    for col in valid_moves:
+        valid_layer[:, col] = 1.0
+    state = np.stack([
+        (board_f == player_id).astype(np.float32),
+        (board_f == opp_id).astype(np.float32),
+        valid_layer,
+    ], axis=0)
     return torch.tensor(state, dtype=torch.float32).to(device)
 
 
-def get_valid_moves(env) -> list:
-    """Get valid column moves from the environment's game state."""
-    game = env._game
-    return [c for c in range(7) if game.is_valid_location(game.board, c)]
-
-
 def pick_action(q_values: torch.Tensor, valid_moves: list) -> int:
-    """Select action with highest Q-value among valid moves."""
     masked = np.full(7, -1e9, dtype=np.float32)
     q_np = q_values.cpu().numpy()
     for col in valid_moves:
@@ -312,271 +189,438 @@ def pick_action(q_values: torch.Tensor, valid_moves: list) -> int:
     return int(np.argmax(masked))
 
 
-def beta_schedule(frame: int, beta_start: float, beta_frames: int) -> float:
-    return min(1.0, beta_start + frame * (1.0 - beta_start) / beta_frames)
+# ─── REWARD SHAPING ──────────────────────────────────────────────────────
+def count_threats(board, player_id: int) -> int:
+    """Count open three-in-a-row threats for player_id."""
+    rows, cols = board.shape
+    opp = 2 if player_id == 1 else 1
+    threats = 0
+    directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
+    for r in range(rows):
+        for c in range(cols):
+            for dr, dc in directions:
+                cells = []
+                for k in range(4):
+                    nr, nc = r + dr * k, c + dc * k
+                    if 0 <= nr < rows and 0 <= nc < cols:
+                        cells.append(board[nr, nc])
+                    else:
+                        break
+                if len(cells) == 4 and cells.count(opp) == 0 and cells.count(player_id) == 3:
+                    threats += 1
+    return threats
 
 
-# ---------------------------------------------------------------------------
-# Evaluation helper
-# ---------------------------------------------------------------------------
-def evaluate(policy_net, snapshot_net, n_games: int, device) -> dict:
-    """
-    Plays n_games with policy_net vs snapshot_net in pure self-play.
-    Returns win/draw/loss rates from policy_net's perspective (Player 1).
-    """
+def shaping_reward(board_before, board_after, player_id: int, shaping_scale: float) -> float:
+    """Delta in threats, scaled. Positive = created new threat; negative = allowed one."""
+    if shaping_scale == 0.0:
+        return 0.0
+    opp = 2 if player_id == 1 else 1
+    my_delta  = count_threats(board_after, player_id) - count_threats(board_before, player_id)
+    opp_delta = count_threats(board_after, opp)       - count_threats(board_before, opp)
+    return shaping_scale * (my_delta - opp_delta)
+
+
+# ─── SELF-PLAY OPPONENT ──────────────────────────────────────────────────
+class SelfPlayOpponent:
+    """Wraps a frozen policy net for self-play."""
+
+    def __init__(self, net: nn.Module, player_id: int, device):
+        self.net = net
+        self.player_id = player_id
+        self.device = device
+
+    def select_move(self, game) -> int:
+        valid = game.get_valid_locations()
+        if not valid:
+            return 0
+        state_t = board_to_tensor(game.board, self.player_id, valid, self.device)
+        with torch.no_grad():
+            q_vals = self.net(state_t.unsqueeze(0)).squeeze(0)
+        return pick_action(q_vals, valid)
+
+
+# ─── METRICS TRACKER ────────────────────────────────────────────────────
+class MetricsTracker:
+    def __init__(self, smoothing_window: int = 3):
+        self.window = smoothing_window
+        self.history: list[dict] = []
+
+    def add(self, episode: int, train_wr: float, eval_stats: dict,
+            epsilon: float, composite: float, snapshot_version: int):
+        self.history.append({
+            "episode":         episode,
+            "snapshot_ver":    snapshot_version,
+            "epsilon":         round(epsilon, 5),
+            "train_wr":        round(train_wr, 4),
+            "eval_wr":         round(eval_stats["win_rate"],  4),
+            "eval_dr":         round(eval_stats["draw_rate"], 4),
+            "eval_lr":         round(eval_stats["loss_rate"], 4),
+            "composite":       round(composite, 4),
+        })
+
+    def smoothed_eval_wr(self) -> float:
+        """Average eval win-rate over the last `window` checkpoints."""
+        recent = [h["eval_wr"] for h in self.history[-self.window:]]
+        return sum(recent) / len(recent) if recent else 0.0
+
+    def to_dict(self) -> dict:
+        return {"smoothing_window": self.window, "records": self.history}
+
+
+# ─── CHECKPOINT MANAGER ─────────────────────────────────────────────────
+class CheckpointManager:
+    """Saves a single .pt file containing both the model weights and metrics."""
+
+    def __init__(self, save_dir: Path, checkpoint_name: str):
+        self.save_dir = save_dir
+        self.checkpoint_name = checkpoint_name
+        self.path = save_dir / checkpoint_name
+        self.best_score = -float("inf")
+        self.best_episode = 0
+
+    @staticmethod
+    def composite_score(eval_stats: dict, train_wr: float) -> float:
+        wr = eval_stats.get("win_rate",  0.0)
+        dr = eval_stats.get("draw_rate", 0.0)
+        lr = eval_stats.get("loss_rate", 0.0)
+        return float(0.45 * wr + 0.15 * dr + 0.20 * train_wr - 0.20 * lr)
+
+    def save(self, episode: int, score: float,
+             policy_net: nn.Module, optimizer: optim.Optimizer,
+             epsilon: float, metrics: MetricsTracker, cfg: dict) -> bool:
+        """Always overwrites. Returns True if this is a new best score."""
+        is_best = score > self.best_score
+        if is_best:
+            self.best_score   = score
+            self.best_episode = episode
+
+        payload = {
+            # ── model state ──
+            "model_state":     policy_net.state_dict(),
+            "optimizer_state": optimizer.state_dict(),
+            # ── training state ──
+            "episode":         episode,
+            "epsilon":         epsilon,
+            # ── scores ──
+            "best_score":      self.best_score,
+            "best_episode":    self.best_episode,
+            "last_score":      score,
+            # ── full history ──
+            "metrics":         metrics.to_dict(),
+            # ── config snapshot ──
+            "config":          cfg,
+        }
+        torch.save(payload, self.path)
+        return is_best
+
+    def load(self, policy_net: nn.Module, optimizer: optim.Optimizer,
+             device, metrics: MetricsTracker):
+        """Load from the unified checkpoint. Returns (episode, epsilon)."""
+        payload = torch.load(self.path, map_location=device)
+        policy_net.load_state_dict(payload["model_state"])
+        optimizer.load_state_dict(payload["optimizer_state"])
+        metrics.history = payload["metrics"]["records"]
+        self.best_score   = payload["best_score"]
+        self.best_episode = payload["best_episode"]
+        return payload["episode"], payload["epsilon"]
+
+
+# ─── EVALUATION ─────────────────────────────────────────────────────────
+def evaluate(policy_net: nn.Module, opponent_net: nn.Module,
+             n_games: int, device, eval_eps: float) -> dict:
     wins = draws = losses = 0
 
-    for _ in range(n_games):
-        env = Connect4Env(render_mode=None)
-        obs, info = env.reset()
-        done = False
-        player_id = 1  # Start as Player 1
-        
-        while not done:
-            valid = get_valid_moves(env)
-            if not valid:  # Draw due to full board
-                draws += 1
-                break
-            
-            # Select network based on current player
-            net = policy_net if player_id == 1 else snapshot_net
-            
-            obs_tensor = obs_to_tensor(obs, player_id, device)
-            with torch.no_grad():
-                q_vals = net(obs_tensor.unsqueeze(0)).squeeze(0)
-            action = pick_action(q_vals, valid)
-            
-            obs, reward, terminated, truncated, info = env.step(action)
-            done = terminated or truncated
-            
-            if done:
-                # reward > 0 means current player (who just moved) won
-                if reward > 0:
-                    if player_id == 1:
-                        wins += 1
-                    else:
-                        losses += 1
-                elif reward < 0:
-                    if player_id == 1:
-                        losses += 1
-                    else:
-                        wins += 1
-                else:
+    for swap in (False, True):
+        policy_pid = 2 if swap else 1
+        opp_pid    = 1 if swap else 2
+
+        for _ in range(n_games // 2):
+            opponent = SelfPlayOpponent(opponent_net, opp_pid, device)
+            game  = Connect4Game()
+            done  = False
+
+            while not done:
+                current_pid = game.current_player
+                valid = game.get_valid_locations()
+
+                if not valid:
                     draws += 1
-            else:
-                player_id = 3 - player_id  # Switch player
-        
-        env.close()
-    
+                    break
+
+                if current_pid == policy_pid:
+                    if random.random() < eval_eps:
+                        col = random.choice(valid)
+                    else:
+                        state_t = board_to_tensor(game.board, policy_pid, valid, device)
+                        with torch.no_grad():
+                            q_vals = policy_net(state_t.unsqueeze(0)).squeeze(0)
+                        col = pick_action(q_vals, valid)
+                else:
+                    col = opponent.select_move(game)
+
+                _, row = game.make_move(col)
+                if row is not None and game.check_winner(row, col, current_pid):
+                    if current_pid == policy_pid:
+                        wins += 1
+                    else:
+                        losses += 1
+                    done = True
+                elif game.check_draw():
+                    draws += 1
+                    done = True
+                else:
+                    game.switch_player()
+
     total = wins + draws + losses
     return {
-        "win_rate": wins / total if total else 0.0,
-        "draw_rate": draws / total if total else 0.0,
+        "win_rate":  wins   / total if total else 0.0,
+        "draw_rate": draws  / total if total else 0.0,
         "loss_rate": losses / total if total else 0.0,
     }
 
 
-# ---------------------------------------------------------------------------
-# Main training loop
-# ---------------------------------------------------------------------------
+# ─── TRAINING LOOP ───────────────────────────────────────────────────────
 def train(cfg: dict):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}")
-    
+    device   = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     save_dir = Path(cfg["save_dir"])
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    # Networks
-    if cfg["use_noisy"]:
-        policy_net = NoisyConnect4Net(sigma_init=cfg["noisy_sigma0"]).to(device)
-    else:
-        policy_net = Connect4Net().to(device)
-
+    # ── Networks ──
+    policy_net = Connect4Net().to(device)
     target_net = copy.deepcopy(policy_net).to(device)
     target_net.eval()
-    snapshot_net = copy.deepcopy(policy_net).to(device)  # Frozen for eval
-    snapshot_net.eval()
 
-    if cfg["resume"]:
-        policy_net.load_state_dict(torch.load(cfg["resume"], map_location=device))
-        print(f"[resume] Loaded weights from {cfg['resume']}")
+    optimizer  = optim.Adam(policy_net.parameters(), lr=cfg["lr"])
 
-    optimizer = optim.Adam(policy_net.parameters(), lr=cfg["lr"])
-
-    # Replay & n-step buffers
+    # ── PER buffer ──
     replay = PrioritizedReplayBuffer(cfg["replay_capacity"], alpha=cfg["per_alpha"])
-    nstep_buf = NStepBuffer(cfg["n_steps"], cfg["gamma"])
 
-    epsilon = cfg["eps_start"]
-    best_train_wr = -1.0
-    global_step = 0
-    ep_outcomes: list[int] = []   # 1=P1 win, 0=P2 win, -1=draw
+    # ── Checkpoint & metrics ──
+    ckpt_mgr = CheckpointManager(save_dir, cfg["checkpoint_name"])
+    metrics  = MetricsTracker(smoothing_window=3)
 
-    for episode in range(1, cfg["episodes"] + 1):
-        env = Connect4Env(render_mode=None)
-        obs, info = env.reset()
-        done = False
-        
-        # Sample fresh noise each episode (NoisyNet)
-        if cfg["use_noisy"] and hasattr(policy_net, "sample_noise"):
-            policy_net.sample_noise()
+    epsilon      = cfg["eps_start"]
+    global_step  = 0
+    ep_outcomes  = []
+    snapshot_version = 0
+    last_snapshot_ep = 0
 
+    # ── Optional resume ──
+    episode_start = 0
+    if cfg["resume"]:
+        resume_path = Path(cfg["resume"])
+        if resume_path.exists():
+            episode_start, epsilon = ckpt_mgr.load(
+                policy_net, optimizer, device, metrics
+            )
+            target_net.load_state_dict(policy_net.state_dict())
+            print(f"[resume] Loaded from {resume_path}  (ep={episode_start})")
+        else:
+            print(f"[resume] Path not found: {resume_path} — starting fresh.")
+
+    # ── LR scheduler: cosine anneal over total episodes ──
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, T_max=cfg["episodes"], eta_min=cfg["lr"] * 0.01
+    )
+
+    # ── Create initial snapshot ──
+    opponent_net = copy.deepcopy(policy_net).to(device)
+    opponent_net.eval()
+
+    # ── Print header ──
+    print(f"\nDevice: {device}")
+    print(f"Total episodes: {cfg['episodes']:,}")
+    print(f"Snapshot update frequency: every {cfg['snapshot_every']:,} episodes")
+    print(f"Checkpoint: {ckpt_mgr.path}\n")
+
+    for episode in range(episode_start + 1, cfg["episodes"] + 1):
+        # ── Sample beta for PER IS correction (anneal toward 1.0) ──
+        frac = min(1.0, episode / cfg["episodes"])
+        beta = cfg["per_beta_start"] + frac * (cfg["per_beta_end"] - cfg["per_beta_start"])
+
+        # ── Game setup ──
+        dqn_pid = random.choice([1, 2])
+        opp_pid = 3 - dqn_pid
+
+        opponent = SelfPlayOpponent(opponent_net, opp_pid, device)
+        game     = Connect4Game()
         ep_reward = 0.0
-        player_id = 1
-        move_count = 0
+        done     = False
+        last_state, last_action, last_board = None, None, None
 
         while not done:
-            valid = get_valid_moves(env)
-            if not valid:  # No valid moves (full board)
-                ep_reward = 0.05
-                ep_outcomes.append(-1)  # Draw
+            pid   = game.current_player
+            valid = game.get_valid_locations()
+
+            if not valid:
+                if last_state is not None:
+                    replay.push(last_state, last_action, 0.2,
+                                board_to_tensor(game.board, dqn_pid, [], device), 1.0)
+                    ep_reward += 0.2
                 break
 
-            obs_tensor = obs_to_tensor(obs, player_id, device)
+            if pid == dqn_pid:
+                board_before = game.board.copy()
+                state_t = board_to_tensor(game.board, dqn_pid, valid, device)
 
-            # Action selection — ε-greedy during warmup, noisy otherwise
-            use_epsilon = (not cfg["use_noisy"]) or (global_step < cfg["eps_warmup"])
-            if use_epsilon and random.random() < epsilon:
-                action = random.choice(valid)
+                if random.random() < epsilon:
+                    col = random.choice(valid)
+                else:
+                    with torch.no_grad():
+                        col = pick_action(policy_net(state_t.unsqueeze(0)).squeeze(0), valid)
+
+                _, row = game.make_move(col)
+                board_after = game.board.copy()
+
+                # Intermediate shaping reward
+                shape = shaping_reward(board_before, board_after, dqn_pid, cfg["reward_threat"])
+
+                if row is not None and game.check_winner(row, col, dqn_pid):
+                    r = 1.0 + shape
+                    replay.push(state_t, col, r,
+                                board_to_tensor(game.board, dqn_pid, [], device), 1.0)
+                    ep_reward += r
+                    done = True
+                elif game.check_draw():
+                    r = 0.3 + shape
+                    replay.push(state_t, col, r,
+                                board_to_tensor(game.board, dqn_pid, [], device), 1.0)
+                    ep_reward += r
+                    done = True
+                else:
+                    last_state, last_action, last_board = state_t, col, board_after
+                    game.switch_player()
+
             else:
-                with torch.no_grad():
-                    q_vals = policy_net(obs_tensor.unsqueeze(0)).squeeze(0)
-                    action = pick_action(q_vals, valid)
+                board_before = game.board.copy()
+                col = opponent.select_move(game)
+                _, row = game.make_move(col)
+                board_after = game.board.copy()
 
-            # Take action in environment
-            obs_next, reward, terminated, truncated, info = env.step(action)
-            done = terminated or truncated
-            move_count += 1
+                if row is not None and game.check_winner(row, col, opp_pid):
+                    r = -1.0
+                    if last_state is not None:
+                        replay.push(last_state, last_action, r,
+                                    board_to_tensor(game.board, dqn_pid, [], device), 1.0)
+                        ep_reward += r
+                    done = True
+                elif game.check_draw():
+                    r = 0.3
+                    if last_state is not None:
+                        replay.push(last_state, last_action, r,
+                                    board_to_tensor(game.board, dqn_pid, [], device), 1.0)
+                        ep_reward += r
+                    done = True
+                else:
+                    # Step transition for the DQN's previous move
+                    if last_state is not None:
+                        # Small shaping: opponent created a threat = bad for us
+                        opp_shape = shaping_reward(
+                            board_before, board_after, opp_pid, cfg["reward_threat"]
+                        )
+                        next_valid = game.get_valid_locations()
+                        replay.push(last_state, last_action, -opp_shape,
+                                    board_to_tensor(game.board, dqn_pid, next_valid, device), 0.0)
+                        last_state = last_action = last_board = None
+                    game.switch_player()
 
-            # Prepare next observation
-            obs_next_tensor = obs_to_tensor(obs_next, player_id, device)
-
-            # Handle terminal states
-            if done:
-                if reward > 0.5:  # Current player won
-                    actual_reward = 1.0
-                    ep_outcome = 1 if player_id == 1 else 0
-                    ep_reward = 1.0 if player_id == 1 else -1.0
-                elif reward < -0.5:  # Current player lost
-                    actual_reward = -1.0
-                    ep_outcome = 0 if player_id == 1 else 1
-                    ep_reward = -1.0 if player_id == 1 else 1.0
-                else:  # Draw
-                    actual_reward = 0.05
-                    ep_outcome = -1
-                    ep_reward = 0.05
-
-                # Push terminal transition
-                t = nstep_buf.push(obs_tensor, action, actual_reward, obs_next_tensor, True)
-                if t:
-                    replay.push(t.state, t.action, t.reward, t.next_state, float(t.done))
-
-                # Flush any remaining transitions
-                for t in nstep_buf.flush():
-                    replay.push(t.state, t.action, t.reward, t.next_state, float(t.done))
-
-                ep_outcomes.append(ep_outcome)
-            else:
-                # Non-terminal: push to n-step buffer with 0 reward (intermediate)
-                t = nstep_buf.push(obs_tensor, action, 0.0, obs_next_tensor, False)
-                if t:
-                    replay.push(t.state, t.action, t.reward, t.next_state, float(t.done))
-
-                # Switch player for next iteration
-                player_id = 3 - player_id
-
-            # ----------------------------------------------------------------
-            # Training step
-            # ----------------------------------------------------------------
+            # ── Training Step ──
             if len(replay) >= max(cfg["min_replay"], cfg["batch_size"]):
-                beta = beta_schedule(global_step, cfg["per_beta_start"], cfg["per_beta_frames"])
-                states, actions, rewards, next_states, dones, idxs, weights = replay.sample(cfg["batch_size"], beta)
+                batch = replay.sample(cfg["batch_size"], beta)
+                if batch is not None:
+                    states, actions, rewards, next_states, dones, weights, tree_idxs = batch
+                    states, actions, rewards = states.to(device), actions.to(device), rewards.to(device)
+                    next_states, dones, weights = next_states.to(device), dones.to(device), weights.to(device)
 
-                states = states.to(device)
-                actions = actions.to(device)
-                rewards = rewards.to(device)
-                next_states = next_states.to(device)
-                dones = dones.to(device)
-                weights = weights.to(device)
+                    q_vals = policy_net(states).gather(1, actions.unsqueeze(1)).squeeze(1)
+                    with torch.no_grad():
+                        next_acts  = policy_net(next_states).argmax(1, keepdim=True)
+                        target_q   = rewards + cfg["gamma"] * (
+                            target_net(next_states).gather(1, next_acts).squeeze(1) * (1.0 - dones)
+                        )
 
-                # Double DQN: action selection with policy, evaluation with target
-                q_vals = policy_net(states).gather(1, actions.unsqueeze(1)).squeeze(1)
-                with torch.no_grad():
-                    next_acts = policy_net(next_states).argmax(1, keepdim=True)
-                    target_q = rewards + (cfg["gamma"] ** cfg["n_steps"]) * \
-                              target_net(next_states).gather(1, next_acts).squeeze(1) * (1.0 - dones)
+                    td_errors = (q_vals - target_q).detach().cpu().numpy()
+                    replay.update_priorities(tree_idxs, td_errors)
 
-                td_errors = (q_vals - target_q).detach().cpu().numpy()
-                replay.update_priorities(idxs, td_errors)
+                    loss = (weights * nn.SmoothL1Loss(reduction="none")(q_vals, target_q)).mean()
+                    optimizer.zero_grad()
+                    loss.backward()
+                    nn.utils.clip_grad_norm_(policy_net.parameters(), 10.0)
+                    optimizer.step()
+                    scheduler.step()
 
-                loss = (weights * F.smooth_l1_loss(q_vals, target_q, reduction="none")).mean()
+                    if global_step % cfg["target_sync"] == 0:
+                        target_net.load_state_dict(policy_net.state_dict())
 
-                optimizer.zero_grad()
-                loss.backward()
-                grad_norm = nn.utils.clip_grad_norm_(policy_net.parameters(), 10.0)
-                optimizer.step()
-
-                if global_step % cfg["target_sync"] == 0:
-                    target_net.load_state_dict(policy_net.state_dict())
-
-            global_step += 1
-            obs = obs_next  # Update observation for next iteration
-
-        env.close()
-
-        # Epsilon decay (only matters when not using NoisyNet or during warmup)
-        if global_step >= cfg["eps_warmup"]:
             epsilon = max(cfg["eps_end"], epsilon * cfg["eps_decay"])
+            global_step += 1
 
-        # ------------------------------------------------------------------
-        # Periodic evaluation & checkpointing
-        # ------------------------------------------------------------------
+        ep_outcomes.append(1 if ep_reward > 0.5 else (0 if ep_reward < -0.5 else -1))
+
+        # ── Update opponent snapshot periodically ──
+        if episode - last_snapshot_ep >= cfg["snapshot_every"]:
+            opponent_net.load_state_dict(policy_net.state_dict())
+            snapshot_version += 1
+            last_snapshot_ep = episode
+            print(f"  [snapshot v{snapshot_version}] Updated opponent at episode {episode}")
+
+        # ── Logging & Evaluation ──
         if episode % cfg["eval_every"] == 0:
             recent = ep_outcomes[-cfg["eval_every"]:]
-            wins_tr = recent.count(1)
-            losses_tr = recent.count(0)
-            draws_tr = recent.count(-1)
-            denom = wins_tr + losses_tr
-            train_wr = wins_tr / denom if denom else 0.0
+            w, l  = recent.count(1), recent.count(0)
+            train_wr = w / (w + l) if (w + l) > 0 else 0.0
 
-            # Eval against frozen snapshot
             policy_net.eval()
-            stats = evaluate(policy_net, snapshot_net, cfg["eval_games"], device)
+            eval_stats = evaluate(
+                policy_net,
+                opponent_net=opponent_net,
+                n_games=cfg["eval_games"],
+                device=device,
+                eval_eps=cfg["eval_eps"],
+            )
             policy_net.train()
 
-            marker = ""
-            if train_wr > best_train_wr:
-                best_train_wr = train_wr
-                torch.save(policy_net.state_dict(), save_dir / "best_model_pureself_gym.pt")
-                snapshot_net.load_state_dict(policy_net.state_dict())  # Update snapshot
-                marker = "  ⭐ NEW BEST"
+            score   = CheckpointManager.composite_score(eval_stats, train_wr)
+            is_best = ckpt_mgr.save(
+                episode, score, policy_net, optimizer,
+                epsilon, metrics, cfg
+            )
+            metrics.add(episode, train_wr, eval_stats,
+                        epsilon, score, snapshot_version)
+
+            lr_now  = scheduler.get_last_lr()[0]
+            marker  = "  ★ best" if is_best else ""
+            smooth_wr = metrics.smoothed_eval_wr()
 
             print(
                 f"[ep {episode:>7,}]  "
-                f"train_wr={train_wr:.3f}  "
-                f"eval_wr={stats['win_rate']:.3f}  "
-                f"eval_dr={stats['draw_rate']:.3f}  "
-                f"eps={epsilon:.4f}  "
-                f"replay={len(replay):,}{marker}"
+                f"vs self[v{snapshot_version}]  "
+                f"train={train_wr:.3f}  "
+                f"eval={eval_stats['win_rate']:.3f}(↑{smooth_wr:.3f})  "
+                f"dr={eval_stats['draw_rate']:.3f}  lr={eval_stats['loss_rate']:.3f}  "
+                f"score={score:.3f}  ε={epsilon:.4f}  lr={lr_now:.2e}"
+                f"{marker}"
             )
 
-        # Rolling checkpoint
-        if episode % 1_000 == 0:
-            torch.save(policy_net.state_dict(), save_dir / "last_model_pureself_gym.pt")
+    # ── Final save ──
+    ckpt_mgr.save(cfg["episodes"], ckpt_mgr.best_score, policy_net, optimizer,
+                  epsilon, metrics, cfg)
 
-    print(f"\nDone. Best train win-rate: {best_train_wr:.3f}")
+    print(f"\n{'='*70}")
+    print(f"Training complete.")
+    print(f"Best episode: {ckpt_mgr.best_episode:,}")
+    print(f"Best composite score: {ckpt_mgr.best_score:.4f}")
+    print(f"Checkpoint: {ckpt_mgr.path}")
+    print(f"  Contains: model weights + optimizer state + full metrics history")
+    print(f"{'='*70}")
 
 
-# ---------------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------------
-def parse_args():
-    p = argparse.ArgumentParser()
+# ─── ENTRY POINT ────────────────────────────────────────────────────────
+def parse_args() -> dict:
+    p = argparse.ArgumentParser(description="DQN Self-Play for Connect-4")
     for k, v in DEFAULTS.items():
-        if isinstance(v, bool):
-            p.add_argument(f"--{k}", default=v, action=argparse.BooleanOptionalAction)
-        else:
-            p.add_argument(f"--{k}", default=v, type=str if v is None else type(v))
+        p.add_argument(f"--{k}", default=v, type=str if v is None else type(v))
     return vars(p.parse_args())
 
 

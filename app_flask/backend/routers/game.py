@@ -379,3 +379,26 @@ def upload_model():
     file_path = os.path.join("uploaded_models", file.filename)
     file.save(file_path)
     return jsonify({"file_path": file_path})
+
+
+@game_bp.get("/list-models")
+def list_models():
+    """List all uploaded model files."""
+    models_dir = "uploaded_models"
+    os.makedirs(models_dir, exist_ok=True)
+    
+    models = []
+    try:
+        for filename in os.listdir(models_dir):
+            if filename.endswith((".pt", ".pth")):
+                file_path = os.path.join(models_dir, filename)
+                # Only include actual files, not directories
+                if os.path.isfile(file_path):
+                    models.append({
+                        "name": filename,
+                        "path": file_path
+                    })
+    except Exception as e:
+        return jsonify({"detail": f"Error listing models: {str(e)}"}), 500
+    
+    return jsonify(models)

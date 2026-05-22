@@ -1,5 +1,11 @@
 BachalorProject/
-agents/__pycache__/
+init_bachelor/agents/__pycache__/
 checkpoints/
-game/__pycache__/
+init_bachelor/game/__pycache__/
 theory/
+init_bachelor/sweep_results/
+app_flask/App_flask
+app_flask/__pycache__/
+app_flask/frontend/__pycache__/
+app_flask/backend/__pycache__/
+init_bachelor/__pycache__/

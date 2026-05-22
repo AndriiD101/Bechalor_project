@@ -1,5 +1,6 @@
 const API = '/api';
 let agents = {};
+let uploadedModels = [];
 let currentMode = 'hvh';
 let gameState = null;
 let gameId = null;
@@ -27,6 +28,15 @@ async function boot() {
   } catch(e) {
     console.error('Failed to load agents', e);
   }
+  
+  // Load uploaded models
+  try {
+    const res = await fetch(`${API}/list-models`);
+    uploadedModels = await res.json();
+  } catch(e) {
+    console.error('Failed to load uploaded models', e);
+    uploadedModels = [];
+  }
 }
 
 function populateAgentDropdowns() {
@@ -50,8 +60,8 @@ function populateAgentDropdowns() {
     document.getElementById('tourney-p2-type').value = keys[Math.min(1, keys.length - 1)];
   }
 
-  updatePlayerUI('p1');
-  updatePlayerUI('p2');
+  // Apply the current mode's rules (hides type dropdowns for HvH, etc.)
+  selectMode(currentMode);
   updatePlayerUI('tourney-p1');
   updatePlayerUI('tourney-p2');
 }
@@ -78,24 +88,27 @@ function selectMode(mode) {
     p2sel.value = 'human';
     p1sel.disabled = true;
     p2sel.disabled = true;
+    // Hide the Type dropdown and show "Human" text label instead
+    document.getElementById('p1-type-row').style.display = 'none';
+    document.getElementById('p2-type-row').style.display = 'none';
+    document.getElementById('p1-human-label').style.display = '';
+    document.getElementById('p2-human-label').style.display = '';
+    const _sb1 = document.getElementById('hva-switch-btn');
+    if (_sb1) _sb1.remove();
 
   } else if (mode === 'hva') {
-    // P1 can be human or agent; P2 can be human or agent.
-    // But if P1 is human, P2 can't also be human (and vice versa).
-    // We start P1 = human, P2 = first agent.
-    p1sel.innerHTML = humanOpt + agentOpts;
-    p2sel.innerHTML = agentOpts; // P2 starts without human since P1 is human
-    p1sel.disabled = false;
-    p2sel.disabled = false;
-    p1sel.value = 'human';
-    const firstAgent = Object.keys(agents)[0];
-    if (firstAgent) p2sel.value = firstAgent;
-
-    // Attach mutual-exclusion listener for HvA mode
-    p1sel.onchange = function() { onHvaPlayerChange('p1'); updatePlayerUI('p1'); };
-    p2sel.onchange = function() { onHvaPlayerChange('p2'); updatePlayerUI('p2'); };
+    // Human is always on one fixed side; agent on the other.
+    // hvaHumanSide tracks which side ('p1' or 'p2') is the human.
+    if (!window.hvaHumanSide) window.hvaHumanSide = 'p1';
+    applyHvaSides(agentOpts);
 
   } else { // ava — no humans allowed
+    document.getElementById('p1-type-row').style.display = '';
+    document.getElementById('p2-type-row').style.display = '';
+    document.getElementById('p1-human-label').style.display = 'none';
+    document.getElementById('p2-human-label').style.display = 'none';
+    const _sb2 = document.getElementById('hva-switch-btn');
+    if (_sb2) _sb2.remove();
     p1sel.innerHTML = agentOpts;
     p2sel.innerHTML = agentOpts;
     p1sel.disabled = false;
@@ -116,51 +129,62 @@ function selectMode(mode) {
 }
 
 /**
- * Called when a player dropdown changes in HvA mode.
- * Ensures the opposite player cannot also be human.
+ * Applies HvA sides based on window.hvaHumanSide ('p1' or 'p2').
+ * Human side gets a static text box; agent side gets a dropdown.
+ * Also renders the Switch Sides button.
  */
-function onHvaPlayerChange(changedPlayer) {
+function applyHvaSides(agentOpts) {
+  const humanSide = window.hvaHumanSide;
+  const agentSide = humanSide === 'p1' ? 'p2' : 'p1';
   const p1sel = document.getElementById('p1-type');
   const p2sel = document.getElementById('p2-type');
-  const humanOpt = '<option value="human">Human</option>';
-  const agentOpts = Object.entries(agents).map(([k,v]) =>
-    `<option value="${k}">${v.label}</option>`
-  ).join('');
 
-  if (changedPlayer === 'p1') {
-    if (p1sel.value === 'human') {
-      // P2 must be an agent
-      const prev = p2sel.value;
-      p2sel.innerHTML = agentOpts;
-      if (agents[prev]) p2sel.value = prev;
-      else {
-        const firstAgent = Object.keys(agents)[0];
-        if (firstAgent) p2sel.value = firstAgent;
-      }
-    } else {
-      // P1 is agent — P2 can be human or agent
-      const prev = p2sel.value;
-      p2sel.innerHTML = humanOpt + agentOpts;
-      p2sel.value = prev || 'human';
-    }
-  } else {
-    if (p2sel.value === 'human') {
-      // P1 must be an agent
-      const prev = p1sel.value;
-      p1sel.innerHTML = agentOpts;
-      if (agents[prev]) p1sel.value = prev;
-      else {
-        const firstAgent = Object.keys(agents)[0];
-        if (firstAgent) p1sel.value = firstAgent;
-      }
-    } else {
-      // P2 is agent — P1 can be human or agent
-      const prev = p1sel.value;
-      p1sel.innerHTML = humanOpt + agentOpts;
-      p1sel.value = prev || 'human';
-    }
+  // Human side: show text box, hide dropdown
+  document.getElementById(`${humanSide}-type-row`).style.display = 'none';
+  document.getElementById(`${humanSide}-human-label`).style.display = '';
+  const humanSel = document.getElementById(`${humanSide}-type`);
+  humanSel.value = 'human';
+  humanSel.disabled = true;
+
+  // Agent side: show dropdown, hide text box
+  document.getElementById(`${agentSide}-type-row`).style.display = '';
+  document.getElementById(`${agentSide}-human-label`).style.display = 'none';
+  const agentSel = document.getElementById(`${agentSide}-type`);
+  agentSel.disabled = false;
+  const prevVal = agentSel.value;
+  agentSel.innerHTML = agentOpts;
+  if (agents[prevVal]) agentSel.value = prevVal;
+  else {
+    const firstAgent = Object.keys(agents)[0];
+    if (firstAgent) agentSel.value = firstAgent;
   }
+  agentSel.onchange = function() { updatePlayerUI(agentSide); };
+
+  // Render switch sides button (or update it if it exists)
+  let switchBtn = document.getElementById('hva-switch-btn');
+  if (!switchBtn) {
+    switchBtn = document.createElement('button');
+    switchBtn.id = 'hva-switch-btn';
+    switchBtn.className = 'btn-secondary';
+    switchBtn.style.cssText = 'width:100%; margin-top:0.75rem; padding:0.6rem 1rem; font-size:0.55rem;';
+    const playerSetup = document.querySelector('#view-setup .player-setup');
+    playerSetup.parentNode.insertBefore(switchBtn, playerSetup.nextSibling);
+  }
+  switchBtn.textContent = '⇄ SWITCH SIDES';
+  switchBtn.onclick = function() {
+    window.hvaHumanSide = window.hvaHumanSide === 'p1' ? 'p2' : 'p1';
+    const ao = Object.entries(agents).map(([k,v]) => `<option value="${k}">${v.label}</option>`).join('');
+    applyHvaSides(ao);
+    updatePlayerUI('p1');
+    updatePlayerUI('p2');
+  };
+
+  updatePlayerUI('p1');
+  updatePlayerUI('p2');
 }
+
+// Keep onHvaPlayerChange as no-op (replaced by applyHvaSides)
+function onHvaPlayerChange(changedPlayer) {}
 
 function updatePlayerUI(prefix) {
   const el = document.getElementById(`${prefix}-type`);
@@ -186,21 +210,55 @@ function updatePlayerUI(prefix) {
     
     // Custom logic to render a Drop Zone for model paths
     if (key === 'model_path') {
-      html += `
-        <div class="drop-zone" id="${prefix}-drop"
-             ondragover="event.preventDefault(); this.classList.add('drag-over')"
-             ondragleave="this.classList.remove('drag-over')"
-             ondrop="handleModelDrop(event, '${prefix}')"
-             onclick="document.getElementById('${prefix}-file').click()">
-          <div style="font-size:1.2rem; margin-bottom:0.5rem">📥</div>
-          <div>Drag & Drop .pt model here<br><span style="font-size:0.55rem; opacity:0.7;">(or click to browse)</span></div>
-          <div class="model-status" id="${prefix}-status" style="color:var(--muted)">Default model loaded</div>
-          
-          <input type="hidden" id="${prefix}-${key}" value="${spec.default || ''}">
-          <input type="file" id="${prefix}-file" style="display:none" accept=".pt,.pth" onchange="handleModelSelect(this, '${prefix}')">
-        </div>`;
-    } 
-    else if (spec.type === 'int' || spec.type === 'float') {
+      // Clone the template
+      const template = document.getElementById('model-upload-template');
+      const clone = template.content.cloneNode(true);
+      
+      // Setup the cloned elements
+      const refreshBtn = clone.querySelector('.refresh-model-btn');
+      const modelSelect = clone.querySelector('.model-select');
+      const dropZone = clone.querySelector('.drop-zone');
+      const fileInput = clone.querySelector('.model-file');
+      
+      // Set IDs and event handlers
+      const selectId = `${prefix}-model-select`;
+      const dropId = `${prefix}-drop`;
+      const fileId = `${prefix}-file`;
+      const statusId = `${prefix}-status`;
+      
+      modelSelect.id = selectId;
+      dropZone.id = dropId;
+      fileInput.id = fileId;
+      clone.querySelector('.model-status').id = statusId;
+      
+      // Populate model options
+      let modelOptions = '<option value="">-- Select uploaded model --</option>';
+      uploadedModels.forEach(model => {
+        modelOptions += `<option value="${model.path}">${model.name}</option>`;
+      });
+      modelSelect.innerHTML = modelOptions;
+      modelSelect.onchange = function() { loadUploadedModel('${prefix}'); };
+      
+      // Setup refresh button
+      refreshBtn.onclick = function() { refreshModelDropdown('${prefix}'); };
+      
+      // Setup file input and drop zone
+      fileInput.onchange = function() { handleModelSelect(this, '${prefix}'); };
+      dropZone.ondrop = function(e) { handleModelDrop(e, '${prefix}'); };
+      dropZone.onclick = function() { document.getElementById('${fileId}').click(); };
+      
+      // Add hidden input for storing the value
+      const hiddenInput = document.createElement('input');
+      hiddenInput.type = 'hidden';
+      hiddenInput.id = `${prefix}-${key}`;
+      hiddenInput.value = spec.default || '';
+      
+      // Append to html
+      const wrapper = document.createElement('div');
+      wrapper.appendChild(clone);
+      wrapper.appendChild(hiddenInput);
+      html += wrapper.innerHTML;
+    } else if (spec.type === 'int' || spec.type === 'float') {
       const step = spec.type === 'float' ? '0.01' : '1';
       html += `<div class="range-row">
         <input type="range" id="${prefix}-${key}"
@@ -1116,6 +1174,23 @@ async function uploadModel(file, prefix) {
     // Set the hidden input value to the new file path on the server
     document.getElementById(`${prefix}-model_path`).value = data.file_path;
     
+    // Refresh the uploaded models list and select the newly uploaded model
+    try {
+      const modelsRes = await fetch(`${API}/list-models`);
+      uploadedModels = await modelsRes.json();
+      document.querySelectorAll('[id$="-model-select"]').forEach(sel => {
+        const currentVal = sel.value;
+        const p = sel.id.replace('-model-select', '');
+        let opts = '<option value="">-- Select uploaded model --</option>';
+        uploadedModels.forEach(m => {
+          const isNew = (m.path === data.file_path && p === prefix);
+          const wasCurrent = (m.path === currentVal && p !== prefix);
+          opts += `<option value="${m.path}"${isNew || wasCurrent ? ' selected' : ''}>${m.name}</option>`;
+        });
+        sel.innerHTML = opts;
+      });
+    } catch (_) {}
+    
     statusEl.textContent = `✓ Loaded: ${file.name}`;
     statusEl.style.color = "var(--accent)";
   } catch (e) {
@@ -1123,6 +1198,46 @@ async function uploadModel(file, prefix) {
     statusEl.textContent = "⚠ Upload error";
     statusEl.style.color = "var(--accent2)";
   }
+}
+
+async function refreshModelDropdown(prefix) {
+  try {
+    const res = await fetch(`${API}/list-models`);
+    uploadedModels = await res.json();
+    const selectEl = document.getElementById(`${prefix}-model-select`);
+    if (!selectEl) return;
+    const currentVal = selectEl.value;
+    let opts = '<option value="">-- Select uploaded model --</option>';
+    uploadedModels.forEach(m => {
+      opts += `<option value="${m.path}"${m.path === currentVal ? ' selected' : ''}>${m.name}</option>`;
+    });
+    selectEl.innerHTML = opts;
+  } catch (e) {
+    console.error('Failed to refresh models', e);
+  }
+}
+
+function loadUploadedModel(prefix) {
+  const selectEl = document.getElementById(`${prefix}-model-select`);
+  const modelPath = selectEl.value;
+  const statusEl = document.getElementById(`${prefix}-status`);
+  
+  if (!modelPath) {
+    // Reset to default
+    document.getElementById(`${prefix}-model_path`).value = '';
+    statusEl.textContent = 'Default model loaded';
+    statusEl.style.color = 'var(--muted)';
+    return;
+  }
+  
+  // Get the model name from the path
+  const modelName = modelPath.split('/').pop();
+  
+  // Set the hidden input value to the selected file path
+  document.getElementById(`${prefix}-model_path`).value = modelPath;
+  
+  statusEl.textContent = `✓ Loaded: ${modelName}`;
+  statusEl.style.color = 'var(--accent)';
 }
 
 // ── Generate & Download GIF ───────────────────────────────────────── //

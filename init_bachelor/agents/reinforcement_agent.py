@@ -119,7 +119,14 @@ class DQNAgent(AgentInterface):
         return int(np.argmax(masked))
 
     def load(self, path: str):
-        state_dict = torch.load(path, map_location=self.device)
+        checkpoint = torch.load(path, map_location=self.device)
+        
+        # Check if checkpoint has metadata wrapper (model_state, optimizer_state, etc.)
+        if isinstance(checkpoint, dict) and "model_state" in checkpoint:
+            state_dict = checkpoint["model_state"]
+        else:
+            state_dict = checkpoint
+        
         # Auto-detect legacy architecture (BatchNorm keys present in checkpoint)
         if any("running_mean" in k for k in state_dict.keys()):
             print("[INFO] Legacy checkpoint detected (BatchNorm). Loading with Connect4NetLegacy.")

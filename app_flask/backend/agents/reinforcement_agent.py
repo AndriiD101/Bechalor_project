@@ -119,7 +119,14 @@ class DQNAgent(AgentInterface):
         return int(np.argmax(masked))
 
     def load(self, path: str):
-        state_dict = torch.load(path, map_location=self.device)
+        checkpoint = torch.load(path, map_location=self.device)
+        
+        # Handle full training checkpoints (extract model_state if present)
+        if isinstance(checkpoint, dict) and "model_state" in checkpoint:
+            print("[INFO] Full checkpoint detected. Extracting model_state...")
+            state_dict = checkpoint["model_state"]
+        else:
+            state_dict = checkpoint
         
         # Auto-detect and handle Bayesian checkpoint (Bayes layer parameters with _mu, _sigma, _epsilon)
         if any("_mu" in k or "_sigma" in k for k in state_dict.keys()):
