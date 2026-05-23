@@ -53,11 +53,16 @@ function populateAgentDropdowns() {
   document.getElementById('tourney-p1-type').innerHTML = agentOpts;
   document.getElementById('tourney-p2-type').innerHTML = agentOpts;
 
-  // Set default unique agents for tournament if possible
-  const keys = Object.keys(agents);
-  if (keys.length > 0) {
-    document.getElementById('tourney-p1-type').value = keys[0];
-    document.getElementById('tourney-p2-type').value = keys[Math.min(1, keys.length - 1)];
+  // Set alphabeta as default for tournament if available, otherwise use first agent
+  if (agents['alphabeta']) {
+    document.getElementById('tourney-p1-type').value = 'alphabeta';
+    document.getElementById('tourney-p2-type').value = 'alphabeta';
+  } else {
+    const keys = Object.keys(agents);
+    if (keys.length > 0) {
+      document.getElementById('tourney-p1-type').value = keys[0];
+      document.getElementById('tourney-p2-type').value = keys[Math.min(1, keys.length - 1)];
+    }
   }
 
   // Apply the current mode's rules (hides type dropdowns for HvH, etc.)

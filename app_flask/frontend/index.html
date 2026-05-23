@@ -46,7 +46,7 @@
               <label>Type</label>
               <select id="p1-type" onchange="updatePlayerUI('p1')"></select>
             </div>
-            <div id="p1-human-label" style="display:none; width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:0.5rem 0.75rem; font-family:var(--font-mono); font-size:0.75rem; margin-bottom:0.75rem;">Human</div>
+            <div id="p1-human-label" class="human-label" style="display:none;">Human</div>
             <div id="p1-params" class="agent-params"></div>
           </div>
           <div class="player-block">
@@ -55,7 +55,7 @@
               <label>Type</label>
               <select id="p2-type" onchange="updatePlayerUI('p2')"></select>
             </div>
-            <div id="p2-human-label" style="display:none; width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:0.5rem 0.75rem; font-family:var(--font-mono); font-size:0.75rem; margin-bottom:0.75rem;">Human</div>
+            <div id="p2-human-label" class="human-label" style="display:none;">Human</div>
             <div id="p2-params" class="agent-params"></div>
           </div>
         </div>
@@ -209,13 +209,12 @@
 <template id="model-upload-template">
   <div style="margin-bottom: 1rem;">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem;">
-      <div style="font-size:0.65rem; color:var(--accent);">📦 Uploaded Models</div>
-      <button class="refresh-model-btn" title="Refresh model list"
-        style="background:var(--surface2); border:1px solid var(--accent); border-radius:4px; color:var(--accent); cursor:pointer; font-size:0.6rem; padding:3px 8px; line-height:1; font-weight:bold; transition:all 0.2s; box-shadow: 0 0 8px rgba(247,201,72,0.3);">
+      <div class="model-label-responsive">📦 Uploaded Models</div>
+      <button class="refresh-model-btn refresh-model-btn-responsive" title="Refresh model list">
         ↻ Refresh
       </button>
     </div>
-    <select class="model-select" style="width:100%; padding:0.5rem; font-size:0.6rem;">
+    <select class="model-select model-select-responsive">
     </select>
   </div>
   <div class="drop-zone"
